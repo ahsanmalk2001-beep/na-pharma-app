@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from openai import OpenAI
 import requests
+import time
 from streamlit_lottie import st_lottie
 
 # --- 1. PAGE CONFIGURATION ---
@@ -12,7 +13,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CUSTOM CSS STYLING (Dark Glassmorphism & Chat Animations) ---
+# --- 2. CUSTOM CSS STYLING ---
 st.markdown("""<style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -20,7 +21,6 @@ html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-/* Header Styling */
 .header-card {
     background: linear-gradient(135deg, rgba(17, 153, 142, 0.18), rgba(56, 239, 125, 0.12));
     border: 1px solid rgba(56, 239, 125, 0.35);
@@ -70,7 +70,6 @@ html, body, [class*="css"] {
     box-shadow: 0 0 8px #2ecc71;
 }
 
-/* KPI Cards */
 .kpi-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -95,16 +94,10 @@ html, body, [class*="css"] {
     letter-spacing: 0.5px;
 }
 
-/* --- NEW: SMOOTH CHAT ANIMATIONS & CARD STYLING --- */
+/* Chat Animations */
 @keyframes slideUpFade {
-    0% {
-        opacity: 0;
-        transform: translateY(20px) scale(0.98);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+    0% { opacity: 0; transform: translateY(20px) scale(0.98); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 [data-testid="stChatMessage"] {
@@ -117,10 +110,28 @@ html, body, [class*="css"] {
     box-shadow: 0 8px 24px rgba(0,0,0,0.1);
 }
 
-/* Make the AI Avatar Glow */
 [data-testid="chatAvatarIcon-assistant"] {
     background: linear-gradient(135deg, #11998e, #38ef7d) !important;
     box-shadow: 0 0 12px rgba(56, 239, 125, 0.5);
+}
+
+/* Splash Screen CSS */
+.splash-text {
+    font-size: 4rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #11998e, #38ef7d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    margin-top: -20px;
+    animation: slideUpFade 1.5s ease-out;
+}
+.splash-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 70vh;
 }
 
 #MainMenu {visibility: hidden;}
@@ -140,8 +151,29 @@ def load_lottieurl(url: str):
     return None
 
 lottie_health = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_jcikwtux.json")
+lottie_splash = load_lottieurl("https://assets2.lottiefiles.com/packages/lf20_tutvdkg0.json") # Big pill animation
 
-# --- 4. DATA LOADER ---
+# --- 4. CINEMATIC SPLASH SCREEN LOGIC ---
+if 'splash_shown' not in st.session_state:
+    st.session_state.splash_shown = False
+
+if not st.session_state.splash_shown:
+    splash_placeholder = st.empty()
+    with splash_placeholder.container():
+        st.markdown('<div class="splash-container">', unsafe_allow_html=True)
+        if lottie_splash:
+            st_lottie(lottie_splash, height=350, key="splash_anim")
+        st.markdown('<p class="splash-text">Hi.</p>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+    # Wait for 3 seconds to let the movie-style intro play
+    time.sleep(3)
+    
+    # Erase the splash screen and permanently mark it as shown
+    splash_placeholder.empty()
+    st.session_state.splash_shown = True
+
+# --- 5. DATA LOADER ---
 EXCEL_FILE = "inventory.xlsx"
 api_key = st.secrets.get("GROQ_API_KEY")
 
@@ -159,7 +191,7 @@ df_master, df_symptom = load_inventory_data()
 total_medicines = len(df_master) if df_master is not None else 0
 total_categories = len(df_symptom) if df_symptom is not None else 0
 
-# --- 5. HEADER SECTION WITH LIVE METRICS ---
+# --- 6. HEADER SECTION WITH LIVE METRICS ---
 st.markdown("""
 <div class="header-card">
     <div class="status-badge"><span class="pulse-dot"></span> System Live & Connected</div>
@@ -200,7 +232,7 @@ with col_anim:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# --- 6. NAVIGATION TABS ---
+# --- 7. NAVIGATION TABS ---
 tab1, tab2, tab3 = st.tabs(["💬 Counter AI Assistant", "📊 Inventory Database", "🧮 Walk-in Bill Estimator"])
 
 # --- TAB 1: AI ASSISTANT ---
@@ -213,7 +245,6 @@ with tab1:
         if "messages" not in st.session_state:
             st.session_state.messages = []
 
-        # Category Quick Chips
         st.markdown("**💡 Quick Counter Lookups:**")
         qcol1, qcol2, qcol3, qcol4, qcol5 = st.columns(5)
         
@@ -265,7 +296,6 @@ with tab1:
                             context += "--- MASTER MEDICINE LIST ---\n"
                             context += master_matches.head(20).to_string(index=False) if not master_matches.empty else "No exact matches found in master list."
 
-                            # NEW: Highly strict formatting instructions to prevent "blocky" text
                             system_instruction = f"""
                             You are the dedicated internal AI assistant for the NA Pharma Care family counter team.
 
