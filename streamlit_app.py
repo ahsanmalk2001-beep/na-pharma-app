@@ -11,6 +11,9 @@ st.set_page_config(
 
 EXCEL_FILE = "inventory.xlsx"
 
+# Get API key automatically from Streamlit Secrets (DO NOT PASTE YOUR REAL KEY HERE)
+api_key = st.secrets.get("GROQ_API_KEY")
+
 # Load Excel Sheets safely with caching
 @st.cache_data
 def load_inventory_data():
@@ -25,10 +28,6 @@ df_master, df_symptom = load_inventory_data()
 
 st.title("💊 NA Pharma Care Management & AI System")
 
-# Sidebar Configuration for Groq API Key
-st.sidebar.header("🔑 System Settings")
-api_key = st.sidebar.text_input("Enter Groq API Key", type="password", help="Get your free key from console.groq.com")
-
 # Main Navigation Tabs
 tab1, tab2 = st.tabs(["💬 Chatbot Assistant", "📊 Inventory Master View"])
 
@@ -37,7 +36,7 @@ with tab1:
     st.markdown("Ask anything about inventory, medications, ear drops, symptoms, or active salts.")
     
     if not api_key:
-        st.warning("⚠️ Please enter your Groq API key in the sidebar to start using the chatbot.")
+        st.error("⚠️ GROQ_API_KEY is missing in Streamlit Cloud Secrets. Please add it under App Settings -> Secrets.")
     else:
         client = OpenAI(
             base_url="https://api.groq.com/openai/v1",
