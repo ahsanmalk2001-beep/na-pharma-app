@@ -13,12 +13,13 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CUSTOM CSS STYLING ---
+# --- 2. CUSTOM CSS STYLING (MOBILE & SAFARI OPTIMIZED) ---
 st.markdown("""<style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
 }
 
 .header-card {
@@ -33,7 +34,7 @@ html, body, [class*="css"] {
     background: linear-gradient(90deg, #11998e, #38ef7d);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-size: 2.8rem;
+    font-size: clamp(2rem, 5vw, 2.8rem);
     font-weight: 800;
     margin: 0px;
     line-height: 1.1;
@@ -41,7 +42,7 @@ html, body, [class*="css"] {
 
 .sub-title {
     color: #b0b0b0;
-    font-size: 1.05rem;
+    font-size: clamp(0.9rem, 2vw, 1.05rem);
     font-weight: 500;
     margin-top: 6px;
     margin-bottom: 0px;
@@ -79,14 +80,14 @@ html, body, [class*="css"] {
 }
 
 .kpi-num {
-    font-size: 1.9rem;
+    font-size: clamp(1.5rem, 4vw, 1.9rem);
     font-weight: 800;
     color: #38ef7d;
     margin: 0;
 }
 
 .kpi-label {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: #999;
     margin-top: 4px;
     margin-bottom: 0;
@@ -94,10 +95,10 @@ html, body, [class*="css"] {
     letter-spacing: 0.5px;
 }
 
-/* Chat Animations */
+/* Chat Animations - Mobile Hardware Accelerated */
 @keyframes slideUpFade {
-    0% { opacity: 0; transform: translateY(20px) scale(0.98); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
+    0% { opacity: 0; transform: translate3d(0, 20px, 0) scale(0.98); }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
 [data-testid="stChatMessage"] {
@@ -108,6 +109,7 @@ html, body, [class*="css"] {
     padding: 18px;
     margin-bottom: 15px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    will-change: transform, opacity;
 }
 
 [data-testid="chatAvatarIcon-assistant"] {
@@ -133,7 +135,7 @@ def load_lottieurl(url: str):
 
 lottie_health = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_jcikwtux.json")
 
-# --- 4. HIGH-END CINEMATIC SPLASH SCREEN (LIVE HOLOGRAM) ---
+# --- 4. MOBILE-PERFECTED 3D HOLOGRAPHIC SPLASH SCREEN ---
 if 'splash_shown' not in st.session_state:
     st.session_state.splash_shown = False
 
@@ -142,10 +144,10 @@ if not st.session_state.splash_shown:
     with splash_placeholder.container():
         st.markdown('''
         <style>
-        /* Pitch black cinematic background */
+        /* 100dvh fixes Safari bottom bar jump issue */
         .splash-bg {
             position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
+            top: 0; left: 0; width: 100vw; height: 100dvh;
             background-color: #050505;
             z-index: 99999;
             display: flex;
@@ -153,13 +155,15 @@ if not st.session_state.splash_shown:
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
         }
         
-        /* Realistic Glowing AI Core */
+        /* Responsive Core Size using Clamp */
         .live-core {
             position: relative;
-            width: 220px;
-            height: 220px;
+            width: clamp(150px, 45vw, 220px);
+            height: clamp(150px, 45vw, 220px);
             border-radius: 50%;
             background: radial-gradient(circle at 50% 50%, rgba(56, 239, 125, 0.15), transparent 70%);
             box-shadow: 0 0 80px rgba(56, 239, 125, 0.2), inset 0 0 50px rgba(17, 153, 142, 0.3);
@@ -167,13 +171,15 @@ if not st.session_state.splash_shown:
             align-items: center;
             justify-content: center;
             animation: coreBreathe 3s ease-in-out infinite alternate;
+            will-change: transform, box-shadow;
         }
 
-        /* 3D Spinning Hologram Rings */
+        /* Hardware Accelerated Rings for Androids/Old iPhones */
         .ring1, .ring2, .ring3 {
             position: absolute;
             border-radius: 50%;
             border: 2px solid transparent;
+            will-change: transform;
         }
         .ring1 {
             width: 100%; height: 100%;
@@ -194,43 +200,43 @@ if not st.session_state.splash_shown:
             animation: spinZ 3s linear infinite;
         }
 
-        /* The Floating Medicine in the Center */
         .core-pill {
-            font-size: 75px;
+            font-size: clamp(50px, 15vw, 75px);
             animation: floatPill 2s ease-in-out infinite;
             filter: drop-shadow(0 0 25px rgba(56, 239, 125, 0.9));
+            will-change: transform;
         }
 
-        /* Movie Intro Text Expanding */
         .movie-text {
-            margin-top: 60px;
-            font-size: 3rem;
+            margin-top: clamp(30px, 8vw, 60px);
+            font-size: clamp(2rem, 8vw, 3rem);
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-weight: 800;
             color: #ffffff;
-            letter-spacing: 15px;
+            letter-spacing: clamp(5px, 2vw, 15px);
             text-shadow: 0 0 25px rgba(56, 239, 125, 0.9);
             animation: trackingExpand 2s cubic-bezier(0.215, 0.610, 0.355, 1.000) both;
+            will-change: opacity, letter-spacing;
         }
 
-        /* Live Physics & Keyframes */
+        /* 3D Translate for buttery smooth mobile rendering */
         @keyframes coreBreathe {
-            0% { transform: scale(0.95); box-shadow: 0 0 40px rgba(56, 239, 125, 0.2); }
-            100% { transform: scale(1.05); box-shadow: 0 0 120px rgba(56, 239, 125, 0.7); }
+            0% { transform: scale(0.95) translate3d(0,0,0); box-shadow: 0 0 40px rgba(56, 239, 125, 0.2); }
+            100% { transform: scale(1.05) translate3d(0,0,0); box-shadow: 0 0 120px rgba(56, 239, 125, 0.7); }
         }
-        @keyframes spinX { 100% { transform: rotate(360deg); } }
-        @keyframes spinY { 100% { transform: rotate(-360deg); } }
-        @keyframes spinZ { 100% { transform: rotate(360deg) scale(1.1); } }
+        @keyframes spinX { 100% { transform: rotate3d(0, 0, 1, 360deg); } }
+        @keyframes spinY { 100% { transform: rotate3d(0, 0, 1, -360deg); } }
+        @keyframes spinZ { 100% { transform: rotate3d(0, 0, 1, 360deg) scale(1.1); } }
         
         @keyframes floatPill {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-12px) rotate(5deg); }
+            0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+            50% { transform: translate3d(0, -12px, 0) rotate(5deg); }
         }
         
         @keyframes trackingExpand {
             0% { letter-spacing: -0.5em; opacity: 0; }
             40% { opacity: 0.6; }
-            100% { opacity: 1; letter-spacing: 15px; }
+            100% { opacity: 1; letter-spacing: clamp(5px, 2vw, 15px); }
         }
         </style>
 
@@ -245,10 +251,7 @@ if not st.session_state.splash_shown:
         </div>
         ''', unsafe_allow_html=True)
         
-    # Wait exactly 3.5 seconds while the movie intro plays
     time.sleep(3.5)
-    
-    # Erase the splash screen and permanently mark it as shown
     splash_placeholder.empty()
     st.session_state.splash_shown = True
 
@@ -279,13 +282,14 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-col_stat1, col_stat2, col_stat3, col_anim = st.columns([2, 2, 2, 2])
+# Mobile-friendly columns
+col_stat1, col_stat2, col_stat3, col_anim = st.columns([1, 1, 1, 1])
 
 with col_stat1:
     st.markdown(f"""
     <div class="kpi-card">
         <p class="kpi-num">{total_medicines}</p>
-        <p class="kpi-label">📦 Tracked Products</p>
+        <p class="kpi-label">📦 Items</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -293,15 +297,15 @@ with col_stat2:
     st.markdown(f"""
     <div class="kpi-card">
         <p class="kpi-num">{total_categories}</p>
-        <p class="kpi-label">🔍 Symptom Categories</p>
+        <p class="kpi-label">🔍 Types</p>
     </div>
     """, unsafe_allow_html=True)
 
 with col_stat3:
     st.markdown("""
     <div class="kpi-card">
-        <p class="kpi-num" style="color:#11998e;">Active</p>
-        <p class="kpi-label">⚡ Smart Substitute Engine</p>
+        <p class="kpi-num" style="color:#11998e;">Live</p>
+        <p class="kpi-label">⚡ AI Sub</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -312,7 +316,7 @@ with col_anim:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # --- 7. NAVIGATION TABS ---
-tab1, tab2, tab3 = st.tabs(["💬 Counter AI Assistant", "📊 Inventory Database", "🧮 Walk-in Bill Estimator"])
+tab1, tab2, tab3 = st.tabs(["💬 AI Assistant", "📊 Database", "🧮 Bill Calc"])
 
 # --- TAB 1: AI ASSISTANT ---
 with tab1:
@@ -325,29 +329,33 @@ with tab1:
             st.session_state.messages = []
 
         st.markdown("**💡 Quick Counter Lookups:**")
-        qcol1, qcol2, qcol3, qcol4, qcol5 = st.columns(5)
+        # Ensure buttons wrap nicely on mobile
+        st.markdown("""<style>
+        div[data-testid="column"] > div > div > div > button {
+            width: 100%;
+            padding: 5px;
+            font-size: 0.85rem;
+        }
+        </style>""", unsafe_allow_html=True)
+        
+        qcol1, qcol2, qcol3, qcol4 = st.columns(4)
         
         selected_prompt = None
-        if qcol1.button("👂 Ear Drops"):
-            selected_prompt = "Do we have any ear drops in stock right now?"
-        if qcol2.button("👁️ Eye Drops"):
-            selected_prompt = "List all eye drop solutions available."
-        if qcol3.button("💊 Antibiotics"):
-            selected_prompt = "What antibiotics do we have in inventory?"
-        if qcol4.button("🤒 Pain Relief"):
-            selected_prompt = "Show pain relief medications and dosages."
-        if qcol5.button("🧹 Clear Screen"):
+        if qcol1.button("👂 Ear Drops"): selected_prompt = "Do we have any ear drops in stock right now?"
+        if qcol2.button("👁️ Eye Drops"): selected_prompt = "List all eye drop solutions available."
+        if qcol3.button("💊 Antibiotics"): selected_prompt = "What antibiotics do we have in inventory?"
+        if qcol4.button("🧹 Clear"): 
             st.session_state.messages = []
             st.rerun()
 
-        chat_container = st.container(height=500)
+        chat_container = st.container(height=450)
 
         with chat_container:
             for message in st.session_state.messages:
                 with st.chat_message(message["role"]):
                     st.markdown(message["content"])
 
-        user_input = st.chat_input("Type medicine name, active formula, or symptom for customer...")
+        user_input = st.chat_input("Type medicine or formula...")
         prompt = selected_prompt or user_input
 
         if prompt:
@@ -358,7 +366,7 @@ with tab1:
                     st.markdown(prompt)
 
                 with st.chat_message("assistant"):
-                    with st.spinner("Scanning inventory for counter..."):
+                    with st.spinner("Scanning inventory..."):
                         try:
                             q = prompt.lower().strip()
                             
@@ -422,7 +430,7 @@ with tab1:
 
 # --- TAB 2: INVENTORY DATABASE ---
 with tab2:
-    st.subheader("📦 Master Inventory Database")
+    st.subheader("📦 Master Database")
     if df_master is not None:
         search_term = st.text_input("🔍 Search to filter database instantly:", "")
         if search_term:
@@ -432,14 +440,13 @@ with tab2:
             st.dataframe(df_master, use_container_width=True)
             
         csv_data = df_master.to_csv(index=False).encode('utf-8')
-        st.download_button("📥 Export Inventory as CSV", csv_data, "na_pharma_inventory.csv", "text/csv")
+        st.download_button("📥 Export as CSV", csv_data, "na_pharma_inventory.csv", "text/csv")
     else:
         st.error("Could not load master inventory list. Check your Excel file.")
 
 # --- TAB 3: QUICK BILL ESTIMATOR ---
 with tab3:
-    st.subheader("🧮 Walk-in Counter Bill Estimator")
-    st.markdown("Quickly calculate totals for walk-in customer purchases to speed up checkout.")
+    st.subheader("🧮 Bill Estimator")
     
     if df_master is not None and "Brand Name" in df_master.columns:
         medicine_list = df_master["Brand Name"].dropna().tolist()
@@ -450,20 +457,19 @@ with tab3:
             total_amount = 0.0
             
             for med in selected_meds:
-                col_m, col_p, col_q = st.columns([3, 2, 2])
-                with col_m:
-                    st.write(f"**{med}**")
+                st.write(f"**{med}**")
+                col_p, col_q = st.columns([1, 1])
                 with col_p:
-                    price = st.number_input(f"Unit Price for {med}", min_value=0.0, value=100.0, step=10.0, key=f"p_{med}")
+                    price = st.number_input(f"Price", min_value=0.0, value=100.0, step=10.0, key=f"p_{med}")
                 with col_q:
-                    qty = st.number_input(f"Quantity for {med}", min_value=1, value=1, step=1, key=f"q_{med}")
+                    qty = st.number_input(f"Qty", min_value=1, value=1, step=1, key=f"q_{med}")
                 
                 item_total = price * qty
                 total_amount += item_total
-                bill_items.append({"Medicine": med, "Unit Price": price, "Qty": qty, "Total": item_total})
+                bill_items.append({"Medicine": med, "Total": item_total})
             
             st.markdown("---")
-            st.markdown(f"### 💳 Total Estimated Bill: **Rs. {total_amount:,.2f}**")
+            st.markdown(f"### 💳 Total: **Rs. {total_amount:,.2f}**")
             st.dataframe(pd.DataFrame(bill_items), use_container_width=True)
     else:
-        st.info("Inventory brand names column not detected. Make sure your 'Full Master Medicine List' sheet has a 'Brand Name' column.")
+        st.info("Inventory brand names column not detected.")
