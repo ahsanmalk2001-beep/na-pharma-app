@@ -115,25 +115,6 @@ html, body, [class*="css"] {
     box-shadow: 0 0 12px rgba(56, 239, 125, 0.5);
 }
 
-/* Splash Screen CSS */
-.splash-text {
-    font-size: 4rem;
-    font-weight: 800;
-    background: linear-gradient(90deg, #11998e, #38ef7d);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-align: center;
-    margin-top: -20px;
-    animation: slideUpFade 1.5s ease-out;
-}
-.splash-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 70vh;
-}
-
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 header {visibility: hidden;}
@@ -151,23 +132,121 @@ def load_lottieurl(url: str):
     return None
 
 lottie_health = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_jcikwtux.json")
-lottie_splash = load_lottieurl("https://assets2.lottiefiles.com/packages/lf20_tutvdkg0.json") # Big pill animation
 
-# --- 4. CINEMATIC SPLASH SCREEN LOGIC ---
+# --- 4. HIGH-END CINEMATIC SPLASH SCREEN (LIVE HOLOGRAM) ---
 if 'splash_shown' not in st.session_state:
     st.session_state.splash_shown = False
 
 if not st.session_state.splash_shown:
     splash_placeholder = st.empty()
     with splash_placeholder.container():
-        st.markdown('<div class="splash-container">', unsafe_allow_html=True)
-        if lottie_splash:
-            st_lottie(lottie_splash, height=350, key="splash_anim")
-        st.markdown('<p class="splash-text">Hi.</p>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('''
+        <style>
+        /* Pitch black cinematic background */
+        .splash-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #050505;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
         
-    # Wait for 3 seconds to let the movie-style intro play
-    time.sleep(3)
+        /* Realistic Glowing AI Core */
+        .live-core {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 50%, rgba(56, 239, 125, 0.15), transparent 70%);
+            box-shadow: 0 0 80px rgba(56, 239, 125, 0.2), inset 0 0 50px rgba(17, 153, 142, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: coreBreathe 3s ease-in-out infinite alternate;
+        }
+
+        /* 3D Spinning Hologram Rings */
+        .ring1, .ring2, .ring3 {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid transparent;
+        }
+        .ring1 {
+            width: 100%; height: 100%;
+            border-top: 3px solid #38ef7d;
+            border-bottom: 3px solid #11998e;
+            animation: spinX 2s linear infinite;
+            filter: drop-shadow(0 0 10px #38ef7d);
+        }
+        .ring2 {
+            width: 80%; height: 80%;
+            border-left: 2px solid #38ef7d;
+            border-right: 2px solid #11998e;
+            animation: spinY 1.5s linear infinite;
+        }
+        .ring3 {
+            width: 60%; height: 60%;
+            border-top: 2px dashed #38ef7d;
+            animation: spinZ 3s linear infinite;
+        }
+
+        /* The Floating Medicine in the Center */
+        .core-pill {
+            font-size: 75px;
+            animation: floatPill 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 25px rgba(56, 239, 125, 0.9));
+        }
+
+        /* Movie Intro Text Expanding */
+        .movie-text {
+            margin-top: 60px;
+            font-size: 3rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 15px;
+            text-shadow: 0 0 25px rgba(56, 239, 125, 0.9);
+            animation: trackingExpand 2s cubic-bezier(0.215, 0.610, 0.355, 1.000) both;
+        }
+
+        /* Live Physics & Keyframes */
+        @keyframes coreBreathe {
+            0% { transform: scale(0.95); box-shadow: 0 0 40px rgba(56, 239, 125, 0.2); }
+            100% { transform: scale(1.05); box-shadow: 0 0 120px rgba(56, 239, 125, 0.7); }
+        }
+        @keyframes spinX { 100% { transform: rotate(360deg); } }
+        @keyframes spinY { 100% { transform: rotate(-360deg); } }
+        @keyframes spinZ { 100% { transform: rotate(360deg) scale(1.1); } }
+        
+        @keyframes floatPill {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(5deg); }
+        }
+        
+        @keyframes trackingExpand {
+            0% { letter-spacing: -0.5em; opacity: 0; }
+            40% { opacity: 0.6; }
+            100% { opacity: 1; letter-spacing: 15px; }
+        }
+        </style>
+
+        <div class="splash-bg">
+            <div class="live-core">
+                <div class="ring1"></div>
+                <div class="ring2"></div>
+                <div class="ring3"></div>
+                <div class="core-pill">💊</div>
+            </div>
+            <div class="movie-text">HI.</div>
+        </div>
+        ''', unsafe_allow_html=True)
+        
+    # Wait exactly 3.5 seconds while the movie intro plays
+    time.sleep(3.5)
     
     # Erase the splash screen and permanently mark it as shown
     splash_placeholder.empty()
