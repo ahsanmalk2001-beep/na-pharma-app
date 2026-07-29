@@ -13,8 +13,13 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CUSTOM CSS STYLING (MOBILE & SAFARI OPTIMIZED) ---
-st.markdown("""<style>
+# --- 2. CUSTOM CSS STYLING & MOBILE HOME SCREEN ICONS ---
+st.markdown("""
+<!-- REPLACE THE LINK BELOW WITH YOUR GITHUB RAW IMAGE LINK FOR HOME SCREEN ICONS -->
+<link rel="apple-touch-icon" href="https://github.com/ahsanmalk2001-beep/na-pharma-app/blob/main/My%20buddy%20Anakin.jpeg">
+<link rel="icon" sizes="192x192" href="https://github.com/ahsanmalk2001-beep/na-pharma-app/blob/main/My%20buddy%20Anakin.jpeg">
+
+<style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 html, body, [class*="css"] {
@@ -144,7 +149,6 @@ if not st.session_state.splash_shown:
     with splash_placeholder.container():
         st.markdown('''
         <style>
-        /* 100dvh fixes Safari bottom bar jump issue */
         .splash-bg {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100dvh;
@@ -159,7 +163,6 @@ if not st.session_state.splash_shown:
             backdrop-filter: blur(10px);
         }
         
-        /* Responsive Core Size using Clamp */
         .live-core {
             position: relative;
             width: clamp(150px, 45vw, 220px);
@@ -174,7 +177,6 @@ if not st.session_state.splash_shown:
             will-change: transform, box-shadow;
         }
 
-        /* Hardware Accelerated Rings for Androids/Old iPhones */
         .ring1, .ring2, .ring3 {
             position: absolute;
             border-radius: 50%;
@@ -219,7 +221,6 @@ if not st.session_state.splash_shown:
             will-change: opacity, letter-spacing;
         }
 
-        /* 3D Translate for buttery smooth mobile rendering */
         @keyframes coreBreathe {
             0% { transform: scale(0.95) translate3d(0,0,0); box-shadow: 0 0 40px rgba(56, 239, 125, 0.2); }
             100% { transform: scale(1.05) translate3d(0,0,0); box-shadow: 0 0 120px rgba(56, 239, 125, 0.7); }
@@ -282,7 +283,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Mobile-friendly columns
 col_stat1, col_stat2, col_stat3, col_anim = st.columns([1, 1, 1, 1])
 
 with col_stat1:
@@ -329,7 +329,6 @@ with tab1:
             st.session_state.messages = []
 
         st.markdown("**💡 Quick Counter Lookups:**")
-        # Ensure buttons wrap nicely on mobile
         st.markdown("""<style>
         div[data-testid="column"] > div > div > div > button {
             width: 100%;
