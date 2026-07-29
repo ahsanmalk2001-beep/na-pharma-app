@@ -12,103 +12,65 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CUSTOM CSS & ANIMATED STYLES ---
-st.markdown("""
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-    * { font-family: 'Poppins', sans-serif; }
-    
-    /* Header Container */
-    .header-card {
-        background: linear-gradient(135deg, rgba(17, 153, 142, 0.12), rgba(56, 239, 125, 0.12));
-        border: 1px solid rgba(56, 239, 125, 0.25);
-        border-radius: 20px;
-        padding: 24px 30px;
-        margin-bottom: 25px;
-        backdrop-filter: blur(10px);
-    }
-    
-    .main-title {
-        background: linear-gradient(90deg, #11998e, #38ef7d);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-size: 2.8rem;
-        font-weight: 800;
-        margin: 0px;
-        line-height: 1.1;
-    }
-
-    .sub-title {
-        color: #888888;
-        font-size: 1.05rem;
-        font-weight: 500;
-        margin-top: 6px;
-        margin-bottom: 0px;
-    }
-
-    /* Live Pulsing Status Badge */
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        background: rgba(46, 204, 113, 0.12);
-        color: #2ecc71;
-        padding: 6px 14px;
-        border-radius: 50px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        border: 1px solid rgba(46, 204, 113, 0.3);
-        margin-bottom: 12px;
-    }
-
-    .pulse-dot {
-        width: 8px;
-        height: 8px;
-        background-color: #2ecc71;
-        border-radius: 50%;
-        display: inline-block;
-        margin-right: 8px;
-        box-shadow: 0 0 0 rgba(46, 204, 113, 0.4);
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
-        70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
-    }
-
-    /* Modern KPI Cards */
-    .kpi-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
-        padding: 16px;
-        text-align: center;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .kpi-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(56, 239, 125, 0.15);
-    }
-    .kpi-num {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #38ef7d;
-        margin: 0;
-    }
-    .kpi-label {
-        font-size: 0.82rem;
-        color: #aaa;
-        font-weight: 500;
-        margin-top: 4px;
-    }
-
-    /* Hide standard clutter */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    </style>
-""", unsafe_allow_html=True)
+# --- 2. CUSTOM STYLES (Cleaned string to prevent Markdown raw text bugs) ---
+st.markdown("""<style>
+.header-card {
+    background: linear-gradient(135deg, rgba(17, 153, 142, 0.15), rgba(56, 239, 125, 0.15));
+    border: 1px solid rgba(56, 239, 125, 0.3);
+    border-radius: 16px;
+    padding: 20px 25px;
+    margin-bottom: 20px;
+}
+.main-title {
+    background: linear-gradient(90deg, #11998e, #38ef7d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 2.6rem;
+    font-weight: 800;
+    margin: 0px;
+    line-height: 1.1;
+}
+.sub-title {
+    color: #aaaaaa;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 6px;
+    margin-bottom: 0px;
+}
+.status-badge {
+    display: inline-block;
+    background: rgba(46, 204, 113, 0.15);
+    color: #2ecc71;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    margin-bottom: 10px;
+}
+.kpi-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+}
+.kpi-num {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #38ef7d;
+    margin: 0;
+}
+.kpi-label {
+    font-size: 0.8rem;
+    color: #aaaaaa;
+    margin-top: 2px;
+    margin-bottom: 0;
+}
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+</style>""", unsafe_allow_html=True)
 
 # --- 3. ANIMATION LOADER ---
 @st.cache_data
@@ -143,76 +105,72 @@ total_categories = len(df_symptom) if df_symptom is not None else 0
 
 # --- 5. HEADER SECTION WITH LIVE METRICS ---
 st.markdown("""
-    <div class="header-card">
-        <div class="status-badge">
-            <span class="pulse-dot"></span> System Live 24/7 & Connected
-        </div>
-        <p class="main-title">NA Pharma Care</p>
-        <p class="sub-title">AI Pharmacy Management & Automated Inventory System</p>
-    </div>
+<div class="header-card">
+    <div class="status-badge">● System Live 24/7 & Connected</div>
+    <p class="main-title">NA Pharma Care</p>
+    <p class="sub-title">AI Pharmacy Management & Automated Inventory System</p>
+</div>
 """, unsafe_allow_html=True)
 
-# KPI Metric Row
 col_stat1, col_stat2, col_stat3, col_anim = st.columns([2, 2, 2, 2])
 
 with col_stat1:
     st.markdown(f"""
-        <div class="kpi-card">
-            <p class="kpi-num">{total_medicines}</p>
-            <p class="kpi-label">📦 Tracked Products</p>
-        </div>
+    <div class="kpi-card">
+        <p class="kpi-num">{total_medicines}</p>
+        <p class="kpi-label">📦 Tracked Products</p>
+    </div>
     """, unsafe_allow_html=True)
 
 with col_stat2:
     st.markdown(f"""
-        <div class="kpi-card">
-            <p class="kpi-num">{total_categories}</p>
-            <p class="kpi-label">🔍 Symptom Categories</p>
-        </div>
+    <div class="kpi-card">
+        <p class="kpi-num">{total_categories}</p>
+        <p class="kpi-label">🔍 Symptom Index</p>
+    </div>
     """, unsafe_allow_html=True)
 
 with col_stat3:
     st.markdown("""
-        <div class="kpi-card">
-            <p class="kpi-num" style="color:#11998e;">Llama-3.1</p>
-            <p class="kpi-label">⚡ AI Neural Core</p>
-        </div>
+    <div class="kpi-card">
+        <p class="kpi-num" style="color:#11998e;">Llama-3.1</p>
+        <p class="kpi-label">⚡ Neural Core</p>
+    </div>
     """, unsafe_allow_html=True)
 
 with col_anim:
     if lottie_health:
-        st_lottie(lottie_health, height=80, key="header_lottie")
+        st_lottie(lottie_health, height=75, key="header_lottie")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# --- 6. MAIN TABS ---
+# --- 6. MAIN NAVIGATION TABS ---
 tab1, tab2 = st.tabs(["💬 AI Assistant Chat", "📊 Master Inventory Database"])
 
 with tab1:
     if not api_key:
-        st.error("⚠️ GROQ_API_KEY is missing in Streamlit Cloud Secrets. Please add it in App Settings -> Secrets.")
+        st.error("⚠️ GROQ_API_KEY is missing in Streamlit Cloud Secrets. Please add it under App Settings -> Secrets.")
     else:
         client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
         
         if "messages" not in st.session_state:
             st.session_state.messages = []
 
-        # Quick Query Chips
+        # Quick Suggestion Chips
         st.markdown("**💡 Quick Suggestions:**")
         qcol1, qcol2, qcol3, qcol4 = st.columns(4)
         
         selected_prompt = None
-        if qcol1.button("👂 Check Ear Drops"):
+        if qcol1.button("👂 Ear Drops"):
             selected_prompt = "Do we have any ear drops in stock?"
-        if qcol2.button("💊 Search Antibiotics"):
+        if qcol2.button("💊 Antibiotics"):
             selected_prompt = "List all antibiotics in our inventory."
-        if qcol3.button("🤒 Pain Relief Options"):
+        if qcol3.button("🤒 Pain Relief"):
             selected_prompt = "What medicines do we have for pain relief or fever?"
-        if qcol4.button("🧹 Clear Conversation"):
+        if qcol4.button("🧹 Clear Chat"):
             st.session_state.messages = []
             st.rerun()
 
-        # Chat display container
         chat_container = st.container(autoscroll=True)
 
         with chat_container:
@@ -220,8 +178,7 @@ with tab1:
                 with st.chat_message(message["role"]):
                     st.markdown(message["content"])
 
-        # Input handling from chat input or button chips
-        user_input = st.chat_input("Ask anything about products, salts, symptoms...")
+        user_input = st.chat_input("Ask anything about products, active salts, or symptoms...")
         prompt = selected_prompt or user_input
 
         if prompt:
@@ -252,7 +209,7 @@ with tab1:
                             system_instruction = f"""
                             You are the professional and friendly pharmacy assistant for NA Pharma Care. 
                             Answer customer queries strictly using the retrieved inventory data provided below.
-                            Format your responses clearly with bullet points and bold text for readability.
+                            Format your responses clearly using bullet points and bold text.
                             
                             RETRIEVED EXCEL DATA FOR THIS QUERY:
                             {context}
@@ -262,8 +219,11 @@ with tab1:
                             for m in st.session_state.messages:
                                 messages_payload.append({"role": m["role"], "content": m["content"]})
 
-                            # Stream response chunk-by-chunk for continuous live typing
                             response = client.chat.completions.create(
+                                model="llama-3.1-8b-instant",
+                                messages_payload=messages_payload,
+                                stream=True
+                            ) if False else client.chat.completions.create(
                                 model="llama-3.1-8b-instant",
                                 messages=messages_payload,
                                 stream=True
