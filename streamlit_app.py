@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CUSTOM CSS STYLING ---
+# --- 2. CUSTOM CSS STYLING (Dark Glassmorphism & Chat Animations) ---
 st.markdown("""<style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -20,6 +20,7 @@ html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
+/* Header Styling */
 .header-card {
     background: linear-gradient(135deg, rgba(17, 153, 142, 0.18), rgba(56, 239, 125, 0.12));
     border: 1px solid rgba(56, 239, 125, 0.35);
@@ -69,6 +70,7 @@ html, body, [class*="css"] {
     box-shadow: 0 0 8px #2ecc71;
 }
 
+/* KPI Cards */
 .kpi-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -91,6 +93,34 @@ html, body, [class*="css"] {
     margin-bottom: 0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+/* --- NEW: SMOOTH CHAT ANIMATIONS & CARD STYLING --- */
+@keyframes slideUpFade {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+[data-testid="stChatMessage"] {
+    animation: slideUpFade 0.4s ease-out forwards;
+    background: rgba(255, 255, 255, 0.02) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 15px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+/* Make the AI Avatar Glow */
+[data-testid="chatAvatarIcon-assistant"] {
+    background: linear-gradient(135deg, #11998e, #38ef7d) !important;
+    box-shadow: 0 0 12px rgba(56, 239, 125, 0.5);
 }
 
 #MainMenu {visibility: hidden;}
@@ -134,7 +164,7 @@ st.markdown("""
 <div class="header-card">
     <div class="status-badge"><span class="pulse-dot"></span> System Live & Connected</div>
     <p class="main-title">NA Pharma Care</p>
-    <p class="sub-title">AI Pharmacy Management & Automated Inventory System</p>
+    <p class="sub-title">Internal Family Management & Automated Counter System</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -171,7 +201,7 @@ with col_anim:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # --- 6. NAVIGATION TABS ---
-tab1, tab2, tab3 = st.tabs(["💬 AI Assistant", "📊 Inventory Database", "🧮 Quick Bill Estimator"])
+tab1, tab2, tab3 = st.tabs(["💬 Counter AI Assistant", "📊 Inventory Database", "🧮 Walk-in Bill Estimator"])
 
 # --- TAB 1: AI ASSISTANT ---
 with tab1:
@@ -184,30 +214,30 @@ with tab1:
             st.session_state.messages = []
 
         # Category Quick Chips
-        st.markdown("**💡 Quick Category Queries:**")
+        st.markdown("**💡 Quick Counter Lookups:**")
         qcol1, qcol2, qcol3, qcol4, qcol5 = st.columns(5)
         
         selected_prompt = None
         if qcol1.button("👂 Ear Drops"):
-            selected_prompt = "Do we have any ear drops in stock?"
+            selected_prompt = "Do we have any ear drops in stock right now?"
         if qcol2.button("👁️ Eye Drops"):
             selected_prompt = "List all eye drop solutions available."
         if qcol3.button("💊 Antibiotics"):
             selected_prompt = "What antibiotics do we have in inventory?"
         if qcol4.button("🤒 Pain Relief"):
             selected_prompt = "Show pain relief medications and dosages."
-        if qcol5.button("🧹 Clear Chat"):
+        if qcol5.button("🧹 Clear Screen"):
             st.session_state.messages = []
             st.rerun()
 
-        chat_container = st.container(autoscroll=True)
+        chat_container = st.container(height=500)
 
         with chat_container:
             for message in st.session_state.messages:
                 with st.chat_message(message["role"]):
                     st.markdown(message["content"])
 
-        user_input = st.chat_input("Search medicine name, active salt, or symptom...")
+        user_input = st.chat_input("Type medicine name, active formula, or symptom for customer...")
         prompt = selected_prompt or user_input
 
         if prompt:
@@ -218,7 +248,7 @@ with tab1:
                     st.markdown(prompt)
 
                 with st.chat_message("assistant"):
-                    with st.spinner("Searching inventory and analyzing active salts..."):
+                    with st.spinner("Scanning inventory for counter..."):
                         try:
                             q = prompt.lower().strip()
                             
@@ -235,16 +265,26 @@ with tab1:
                             context += "--- MASTER MEDICINE LIST ---\n"
                             context += master_matches.head(20).to_string(index=False) if not master_matches.empty else "No exact matches found in master list."
 
+                            # NEW: Highly strict formatting instructions to prevent "blocky" text
                             system_instruction = f"""
-                            You are the professional AI pharmacy assistant for NA Pharma Care.
-                            Answer customer and pharmacist queries using the retrieved inventory data below.
+                            You are the dedicated internal AI assistant for the NA Pharma Care family counter team.
+
+                            STRICT VISUAL FORMATTING RULES:
+                            1. NEVER use markdown tables (| Column | Column |).
+                            2. NEVER use markdown code blocks (```).
+                            3. ALWAYS format medicines as clean, visually appealing "Virtual Cards" using emojis and soft dividers.
                             
-                            INSTRUCTIONS:
-                            1. Present findings clearly using bold text, bullet points, and clean formatting.
-                            2. Include Brand Name, Active Salt / Generic Formula, Category, and Primary Uses when listing medicines.
-                            3. GENERIC SUBSTITUTE ENGINE: If an exact requested brand is not listed or missing, check the active salt and explicitly suggest alternative brands in the database with the SAME active salt.
-                            4. Keep answers concise, helpful, and professional.
+                            Example Format to copy:
+                            💊 **[Brand Name]**  
+                            🔬 *Formula: [Active Salt]*  
+                            📝 *Category: [Primary Use]*  
+                            ---
                             
+                            COUNTER OPERATOR RULES:
+                            1. **Instant Medicine Lookup:** Confirm if the item is in stock using the Virtual Card format above.
+                            2. **Smart Alternatives:** If requested brand is missing, immediately list alternative brands sharing the EXACT same active salt.
+                            3. **Customer Guidance:** Keep responses fast to read, avoiding long paragraphs.
+
                             RETRIEVED INVENTORY DATA FOR THIS QUERY:
                             {context}
                             """
@@ -275,7 +315,7 @@ with tab1:
 with tab2:
     st.subheader("📦 Master Inventory Database")
     if df_master is not None:
-        search_term = st.text_input("🔍 Filter database in real-time:", "")
+        search_term = st.text_input("🔍 Search to filter database instantly:", "")
         if search_term:
             filtered_df = df_master[df_master.apply(lambda row: row.astype(str).str.lower().str.contains(search_term.lower(), na=False).any(), axis=1)]
             st.dataframe(filtered_df, use_container_width=True)
@@ -285,16 +325,16 @@ with tab2:
         csv_data = df_master.to_csv(index=False).encode('utf-8')
         st.download_button("📥 Export Inventory as CSV", csv_data, "na_pharma_inventory.csv", "text/csv")
     else:
-        st.error("Could not load master inventory list.")
+        st.error("Could not load master inventory list. Check your Excel file.")
 
 # --- TAB 3: QUICK BILL ESTIMATOR ---
 with tab3:
     st.subheader("🧮 Walk-in Counter Bill Estimator")
-    st.markdown("Quickly calculate totals for walk-in customer purchases.")
+    st.markdown("Quickly calculate totals for walk-in customer purchases to speed up checkout.")
     
     if df_master is not None and "Brand Name" in df_master.columns:
         medicine_list = df_master["Brand Name"].dropna().tolist()
-        selected_meds = st.multiselect("Select Medicines:", medicine_list)
+        selected_meds = st.multiselect("Scan / Select Medicines:", medicine_list)
         
         if selected_meds:
             bill_items = []
@@ -317,4 +357,4 @@ with tab3:
             st.markdown(f"### 💳 Total Estimated Bill: **Rs. {total_amount:,.2f}**")
             st.dataframe(pd.DataFrame(bill_items), use_container_width=True)
     else:
-        st.info("Inventory brand names column not detected. You can view full stock in Tab 2.")
+        st.info("Inventory brand names column not detected. Make sure your 'Full Master Medicine List' sheet has a 'Brand Name' column.")
