@@ -171,6 +171,26 @@ html, body, [class*="css"] {
     line-height: 1.4 !important;
     margin-bottom: 0px !important;
 }
+
+/* Compact File Uploader Styling */
+[data-testid="stFileUploader"] {
+    max-width: 220px !important;
+}
+[data-testid="stFileUploader"] section {
+    padding: 4px 10px !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+    border: 1px dashed rgba(59, 130, 246, 0.4) !important;
+    border-radius: 10px !important;
+}
+[data-testid="stFileUploader"] section button {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    padding: 2px 10px !important;
+    font-size: 0.85rem !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -276,11 +296,9 @@ with tab1:
             st.rerun()
 
         st.markdown("<br>", unsafe_allow_html=True)
-        col_input_mode2, col_input_mode3 = st.columns(2)
-        with col_input_mode2:
-            uploaded_img = st.file_uploader("📷 Upload Photo", type=["jpg", "png", "jpeg"], label_visibility="collapsed", key=f"file_uploader_{st.session_state.file_uploader_key}")
-        with col_input_mode3:
-            barcode_input = st.text_input("🏷️ Barcode SKU", placeholder="Scan barcode...", label_visibility="collapsed")
+        
+        # Compact Upload Button
+        uploaded_img = st.file_uploader("➕ Upload Image", type=["jpg", "png", "jpeg"], key=f"file_uploader_{st.session_state.file_uploader_key}")
 
         chat_container = st.container(height=400)
         with chat_container:
@@ -300,8 +318,6 @@ with tab1:
         user_input = st.chat_input("Ask AI...")
         
         prompt = selected_prompt or user_input
-        if barcode_input:
-            prompt = f"Barcode scan lookup for SKU/Code: {barcode_input}"
 
         image_bytes = None
         if uploaded_img is not None:
@@ -378,7 +394,7 @@ with tab1:
                         except Exception as e:
                             st.error(f"Processing Error: {e}")
 
-            # Automatically clear the uploaded photo after processing so it doesn't stay attached
+            # Automatically clear the uploaded photo after processing
             if uploaded_img is not None:
                 st.session_state.file_uploader_key += 1
                 st.rerun()
