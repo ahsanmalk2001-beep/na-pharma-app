@@ -367,7 +367,7 @@ with tab1:
                                     ]
                                 })
                                 response = client.chat.completions.create(
-                                    model="llama-3.2-11b-vision-preview",
+                                    model="qwen/qwen3.6-27b",
                                     messages=messages_payload,
                                     stream=True
                                 )
