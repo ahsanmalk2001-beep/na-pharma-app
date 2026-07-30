@@ -40,7 +40,7 @@ footer {visibility: hidden !important;}
 """, unsafe_allow_html=True)
 
 
-# --- 2. PREMIUM DARK THEME & DYNAMIC NOTCH CSS ---
+# --- 2. PREMIUM DARK THEME, NOTCH & FLOATING CHAT BUBBLES CSS ---
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
@@ -56,7 +56,6 @@ html, body, [class*="css"] {
 }
 
 /* --- THE DYNAMIC NOTCH INSPIRED HEADER --- */
-/* Mobile: The top pill-shaped "notch" simulator */
 @media (max-width: 768px) {
     #dynamic-notch {
         position: fixed;
@@ -90,14 +89,12 @@ html, body, [class*="css"] {
         z-index: 9998;
     }
 }
-/* Web: A subtle, full-width top bar integration instead of a notch pill */
 @media (min-width: 769px) {
     #dynamic-notch { display: none; }
     #notch-glow { display: none; }
 }
 
-
-/* Glassmorphism Cards */
+/* Glassmorphism Dashboard Cards */
 .glass-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -115,9 +112,8 @@ html, body, [class*="css"] {
     border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
-/* Typography & Colors */
-.text-primary { color: #10b981; } /* Medical Green */
-.text-secondary { color: #3b82f6; } /* Medical Blue */
+.text-primary { color: #10b981; } 
+.text-secondary { color: #3b82f6; } 
 .text-muted { color: #94a3b8; font-size: 0.85rem; }
 .card-value { font-size: 2.2rem; font-weight: 700; margin: 8px 0; color: #f8fafc; }
 .status-badge {
@@ -146,21 +142,53 @@ html, body, [class*="css"] {
     100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
-/* Custom Chat Bubbles for Mobile */
+/* --- THE NEW "ALIVE" FLOATING CHAT BUBBLES --- */
+
+/* 1. Nuke the default Streamlit blocky row backgrounds and borders */
 [data-testid="stChatMessage"] {
-    background: rgba(255, 255, 255, 0.02) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 15px;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-bottom: 25px !important;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* 2. Create the floating glass bubble around the text */
+[data-testid="stChatMessageContent"] {
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 22px !important;
+    padding: 16px 24px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    color: #f8fafc !important;
+}
+
+/* 3. Smooth Pop-in Animation for new messages */
+@keyframes popIn {
+    0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 4. Upgrade the Avatars from default Red/Orange squares to premium rounded icons */
+.stChatMessageAvatar {
+    border-radius: 12px !important; /* Soft rounded square */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+}
+[data-testid="chatAvatarIcon-user"] {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important; /* Premium Blue for User */
 }
 [data-testid="chatAvatarIcon-assistant"] {
-    background: linear-gradient(135deg, #10b981, #3b82f6) !important;
+    background: linear-gradient(135deg, #10b981, #047857) !important; /* Medical Green for AI */
 }
+
 /* Simplified chatbot font sizing */
-[data-testid="stChatMessage"] div p {
+[data-testid="stChatMessageContent"] div p {
     font-size: 0.95rem;
-    line-height: 1.5;
+    line-height: 1.6;
+    margin-bottom: 0px !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -173,9 +201,8 @@ def load_lottieurl(url: str):
         return r.json()
     return None
 
-lottie_pulse = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_jcikwtux.json") # A pulsing heart/DNA strand
+lottie_pulse = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_jcikwtux.json") 
 
-# FAKE BEGINNING ANIMATION SPLASH SCREEN
 if 'splash_shown' not in st.session_state:
     st.session_state.splash_shown = False
 
@@ -187,7 +214,7 @@ if not st.session_state.splash_shown:
             st_lottie(lottie_pulse, height=150, key="splash_lottie")
         st.markdown("<h1 style='color: #10b981; font-weight: 700; margin-top:20px;'>NAPC AI</h1></div>", unsafe_allow_html=True)
     
-    time.sleep(2.5) # Show splash for 2.5 seconds
+    time.sleep(2.5) 
     splash_placeholder.empty()
     st.session_state.splash_shown = True
 
@@ -205,7 +232,6 @@ api_key = st.secrets.get("GROQ_API_KEY")
 @st.cache_data
 def load_inventory_data():
     try:
-        # Assuming the inventory file structure hasn't changed
         df_master = pd.read_excel(EXCEL_FILE, sheet_name='Full Master Medicine List', header=3)
         df_symptom = pd.read_excel(EXCEL_FILE, sheet_name='Quick Symptom & Keyword Index', header=3)
         return df_master, df_symptom
@@ -217,7 +243,6 @@ total_medicines = len(df_master) if df_master is not None else 0
 total_categories = len(df_symptom) if df_symptom is not None else 0
 
 # --- 6. BRANDING & COMPACT DASHBOARD ---
-# Spacer for the dynamic notch/header on mobile
 st.markdown("<div style='margin-top: 45px;' class='mobile-spacer'></div>", unsafe_allow_html=True)
 
 st.markdown("""
@@ -271,7 +296,6 @@ with tab1:
         if "messages" not in st.session_state:
             st.session_state.messages = []
 
-        # Compact Quick Lookup Categories
         st.markdown("<h5 style='color: #e2e8f0; font-weight: 500; margin-bottom:10px;'>⚡ Counter Lookup</h5>", unsafe_allow_html=True)
         q1, q2, q3, q4, q5 = st.columns(5)
         
@@ -284,7 +308,6 @@ with tab1:
             st.session_state.messages = []
             st.rerun()
 
-        # Chat Interface with optimized height
         chat_container = st.container(height=450)
         with chat_container:
             if not st.session_state.messages:
@@ -299,7 +322,6 @@ with tab1:
                 with st.chat_message(message["role"]):
                     st.markdown(message["content"])
 
-        # Sticky Input Bar styling via CSS injection
         st.markdown("""
         <style>
         .stChatInputContainer {
@@ -333,10 +355,8 @@ with tab1:
                             
                             if df_master is not None:
                                 master_matches = df_master[df_master.apply(lambda row: row.astype(str).str.lower().str.contains(q, na=False).any(), axis=1)]
-                                # Provide less context data to model to keep it focused
                                 context += master_matches.head(10).to_string(index=False) if not master_matches.empty else "No exact matches found in master list."
 
-                            # REVISED PROMPT FOR DIRECT, COMPACT MOBILE ANSWERS
                             system_instruction = f"""
                             You are NA Pharma Care AI V3, the direct, internal pharmacy assistant for the NA family counter team.
 
@@ -375,7 +395,7 @@ with tab1:
                         except Exception as e:
                             st.error(f"API Error: {e}")
 
-# --- TAB 2: INVENTORY DATABASE (REMAINS SAME LOGIC, REFINED VISUALS) ---
+# --- TAB 2: INVENTORY DATABASE ---
 with tab2:
     if df_master is not None:
         st.markdown("<h3 style='color: #f8fafc; margin-bottom:10px;'>📦 Master Database Scan</h3>", unsafe_allow_html=True)
@@ -386,7 +406,7 @@ with tab2:
         else:
             st.dataframe(df_master, use_container_width=True)
 
-# --- TAB 3: BILL CALCULATOR (REMAINS SAME LOGIC, REFINED VISUALS) ---
+# --- TAB 3: BILL CALCULATOR ---
 with tab3:
     st.markdown("<h3 style='color: #f8fafc; margin-bottom:10px;'>🧾 Bill Estimator</h3>", unsafe_allow_html=True)
     if df_master is not None and "Brand Name" in df_master.columns:
