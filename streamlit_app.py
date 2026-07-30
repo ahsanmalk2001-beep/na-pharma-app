@@ -17,12 +17,25 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-/* --- FULL REMOVAL OF STREAMLIT BRANDING, FOOTERS & WHITE FLASH --- */
+/* --- FULL REMOVAL OF STREAMLIT BRANDING, FOOTERS & FLOATING BADGES --- */
 #MainMenu {visibility: hidden !important;}
 header {visibility: hidden !important;}
-footer {visibility: hidden !important;}
+footer {visibility: hidden !important; display: none !important;}
 .stDeployButton {display: none !important;}
 [data-testid="stStatusWidget"] {visibility: hidden !important;}
+[data-testid="stToolbar"] {display: none !important;}
+[data-testid="stDecoration"] {display: none !important;}
+
+/* Target Streamlit Cloud's specific bottom-right floating badge containers */
+.viewerBadge_container__1QSob,
+div[class*="viewerBadge"],
+div[class*="styles_viewerBadge"],
+a[href*="streamlit.cloud"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
 
 /* Force Dark Background on Everything to Eliminate White Loading Flash */
 html, body, [data-testid="stAppViewContainer"], .stApp {
