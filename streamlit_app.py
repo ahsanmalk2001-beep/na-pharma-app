@@ -17,21 +17,28 @@ st.set_page_config(
 
 st.markdown("""
 <style>
+/* --- FULL REMOVAL OF STREAMLIT BRANDING, FOOTERS & WHITE FLASH --- */
+#MainMenu {visibility: hidden !important;}
+header {visibility: hidden !important;}
+footer {visibility: hidden !important;}
+.stDeployButton {display: none !important;}
+[data-testid="stStatusWidget"] {visibility: hidden !important;}
+
+/* Force Dark Background on Everything to Eliminate White Loading Flash */
+html, body, [data-testid="stAppViewContainer"], .stApp {
+    background-color: #020617 !important;
+    background: radial-gradient(circle at top left, #1e293b, #0f172a, #020617) !important;
+    color: #f8fafc !important;
+    height: 100dvh !important;
+    overflow-x: hidden !important;
+}
+
 div[data-testid="stAppViewBlockContainer"] {
     padding: 0px !important;
     max-width: 100% !important;
 }
 div[data-testid="stSidebar"] > div:first-child {
     padding-top: 0px !important;
-}
-header {visibility: hidden !important;}
-#MainMenu {visibility: hidden !important;}
-footer {visibility: hidden !important;}
-
-html, body, [data-testid="stAppViewContainer"] {
-    background-color: #020617 !important;
-    height: 100dvh !important;
-    overflow-x: hidden !important;
 }
 
 [data-testid="column"] {
@@ -51,10 +58,6 @@ st.markdown("""
 html, body, [class*="css"] {
     font-family: 'Poppins', sans-serif !important;
     color: #f8fafc;
-}
-.stApp {
-    background: radial-gradient(circle at top left, #1e293b, #0f172a, #020617);
-    background-attachment: fixed;
 }
 
 @media (max-width: 768px) {
@@ -244,7 +247,7 @@ if 'splash_shown' not in st.session_state:
 if not st.session_state.splash_shown:
     splash_placeholder = st.empty()
     with splash_placeholder.container():
-        st.markdown("<div style='position: fixed; top:0; left:0; width:100vw; height:100dvh; background-color: #0f172a; z-index: 10000; display:flex; flex-direction:column; align-items:center; justify-content:center;'>", unsafe_allow_html=True)
+        st.markdown("<div style='position: fixed; top:0; left:0; width:100vw; height:100dvh; background-color: #020617; z-index: 10000; display:flex; flex-direction:column; align-items:center; justify-content:center;'>", unsafe_allow_html=True)
         if lottie_pulse:
             st_lottie(lottie_pulse, height=130, key="splash_lottie")
         st.markdown("<h1 style='color: #10b981; font-weight: 700; margin-top:15px; font-size:1.8rem;'>NAPC AI</h1></div>", unsafe_allow_html=True)
@@ -456,7 +459,7 @@ with tab3:
         if selected_meds:
             total_amount = 0.0
             for med in selected_meds:
-                col_n, col_p, col_q = st.columns([2, 1, 1])
+                col_n, col_p, col_q = st.columns([2, 1, 1])*/
                 with col_n: st.markdown(f"<p style='margin-top:10px; font-weight:600; font-size:0.9rem;'>{med}</p>", unsafe_allow_html=True)
                 with col_p: price = st.number_input(f"Price", min_value=0.0, value=100.0, step=10.0, key=f"p_{med}")
                 with col_q: qty = st.number_input(f"Qty", min_value=1, value=1, step=1, key=f"q_{med}")
