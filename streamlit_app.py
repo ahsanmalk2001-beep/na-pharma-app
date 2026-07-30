@@ -40,7 +40,7 @@ footer {visibility: hidden !important;}
 """, unsafe_allow_html=True)
 
 
-# --- 2. PREMIUM DARK THEME, NOTCH & FLOATING CHAT BUBBLES CSS ---
+# --- 2. PREMIUM DARK THEME, NOTCH, CHAT ALIGNMENT & MOBILE FONT FIX CSS ---
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
@@ -142,9 +142,8 @@ html, body, [class*="css"] {
     100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
-/* --- THE NEW "ALIVE" FLOATING CHAT BUBBLES --- */
+/* --- CHAT ALIGNMENT & BUBBLES --- */
 
-/* 1. Nuke the default Streamlit blocky row backgrounds and borders */
 [data-testid="stChatMessage"] {
     background-color: transparent !important;
     border: none !important;
@@ -154,7 +153,22 @@ html, body, [class*="css"] {
     animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
-/* 2. Create the floating glass bubble around the text */
+/* AI Message (Assistant): Left Aligned */
+[data-testid="stChatMessage"][data-testid*="assistant"], 
+[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]) {
+    flex-direction: row !important;
+}
+
+/* User Message: Right Aligned */
+[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) {
+    flex-direction: row-reverse !important;
+    text-align: right !important;
+}
+[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) [data-testid="stChatMessageContent"] {
+    background: linear-gradient(145deg, rgba(59, 130, 246, 0.2), rgba(29, 78, 216, 0.3)) !important;
+    border: 1px solid rgba(59, 130, 246, 0.2) !important;
+}
+
 [data-testid="stChatMessageContent"] {
     background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9)) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
@@ -166,28 +180,20 @@ html, body, [class*="css"] {
     color: #f8fafc !important;
 }
 
-/* 3. Smooth Pop-in Animation for new messages */
 @keyframes popIn {
     0% { opacity: 0; transform: translateY(20px) scale(0.95); }
     100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* 4. Upgrade the Avatars from default Red/Orange squares to premium rounded icons */
 .stChatMessageAvatar {
-    border-radius: 12px !important; /* Soft rounded square */
+    border-radius: 12px !important;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
 }
-[data-testid="chatAvatarIcon-user"] {
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important; /* Premium Blue for User */
-}
-[data-testid="chatAvatarIcon-assistant"] {
-    background: linear-gradient(135deg, #10b981, #047857) !important; /* Medical Green for AI */
-}
 
-/* Simplified chatbot font sizing */
+/* Fix font sizes on mobile to default standard text size */
 [data-testid="stChatMessageContent"] div p {
-    font-size: 0.95rem;
-    line-height: 1.6;
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
     margin-bottom: 0px !important;
 }
 </style>
@@ -308,6 +314,16 @@ with tab1:
             st.session_state.messages = []
             st.rerun()
 
+        # Multi-modal input toolbar (Voice simulation text input / Image / Barcode scan triggers)
+        st.markdown("<br>", unsafe_allow_html=True)
+        col_input_mode1, col_input_mode2, col_input_mode3 = st.columns(3)
+        with col_input_mode1:
+            voice_mode = st.toggle("🎙️ Enable Voice Listen Mode", value=False)
+        with col_input_mode2:
+            uploaded_img = st.file_uploader("📷 Upload Medicine/Prescription Photo", type=["jpg", "png", "jpeg"], label_visibility="collapsed")
+        with col_input_mode3:
+            barcode_input = st.text_input("🏷️ Barcode / SKU Scan Lookup", placeholder="Scan or type barcode...", label_visibility="collapsed")
+
         chat_container = st.container(height=450)
         with chat_container:
             if not st.session_state.messages:
@@ -319,7 +335,9 @@ with tab1:
                 """, unsafe_allow_html=True)
                 
             for message in st.session_state.messages:
-                with st.chat_message(message["role"]):
+                # Custom avatars: Doctor (👨‍⚕️) for assistant, Ill Cat (😿) for user
+                avatar_icon = "👨‍⚕️" if message["role"] == "assistant" else "😿"
+                with st.chat_message(message["role"], avatar=avatar_icon):
                     st.markdown(message["content"])
 
         st.markdown("""
@@ -337,18 +355,23 @@ with tab1:
         }
         </style>
         """, unsafe_allow_html=True)
+        
         user_input = st.chat_input("Ask AI...")
+        
+        # Build prompt considering barcode input if active
         prompt = selected_prompt or user_input
+        if barcode_input:
+            prompt = f"Barcode scan lookup for SKU/Code: {barcode_input}"
 
         if prompt:
             st.session_state.messages.append({"role": "user", "content": prompt})
             
             with chat_container:
-                with st.chat_message("user"):
+                with st.chat_message("user", avatar="😿"):
                     st.markdown(prompt)
 
-                with st.chat_message("assistant"):
-                    with st.spinner("🔍 Scanning Database..."):
+                with st.chat_message("assistant", avatar="👨‍⚕️"):
+                    with st.spinner("🔍 Scanning Database & Processing Inputs..."):
                         try:
                             q = prompt.lower().strip()
                             context = "--- DATABASE SCAN RESULTS ---\n"
@@ -358,7 +381,7 @@ with tab1:
                                 context += master_matches.head(10).to_string(index=False) if not master_matches.empty else "No exact matches found in master list."
 
                             system_instruction = f"""
-                            You are NA Pharma Care AI V3, the direct, internal pharmacy assistant for the NA family counter team.
+                            You are NA Pharma Care AI V3, the direct, internal pharmacy assistant for the NA family counter team led by a professional doctor persona.
 
                             STRICT RESPONSE FORMAT (DO NOT USE TABLES OR CODE BLOCKS). Whenever you suggest a medicine, you MUST format it EXACTLY like this beautiful *Simplified* virtual card:
 
