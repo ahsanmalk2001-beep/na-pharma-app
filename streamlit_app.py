@@ -459,7 +459,7 @@ with tab3:
         if selected_meds:
             total_amount = 0.0
             for med in selected_meds:
-                col_n, col_p, col_q = st.columns([2, 1, 1])*/
+                col_n, col_p, col_q = st.columns([2, 1, 1])
                 with col_n: st.markdown(f"<p style='margin-top:10px; font-weight:600; font-size:0.9rem;'>{med}</p>", unsafe_allow_html=True)
                 with col_p: price = st.number_input(f"Price", min_value=0.0, value=100.0, step=10.0, key=f"p_{med}")
                 with col_q: qty = st.number_input(f"Qty", min_value=1, value=1, step=1, key=f"q_{med}")
