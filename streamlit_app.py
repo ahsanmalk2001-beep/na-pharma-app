@@ -259,6 +259,9 @@ with tab1:
         
         if "messages" not in st.session_state:
             st.session_state.messages = []
+            
+        if "file_uploader_key" not in st.session_state:
+            st.session_state.file_uploader_key = 0
 
         st.markdown("<h5 style='color: #e2e8f0; font-weight: 500; margin-bottom:8px; font-size:0.95rem;'>⚡ Counter Lookup</h5>", unsafe_allow_html=True)
         q1, q2, q3, q4, q5 = st.columns(5)
@@ -273,20 +276,11 @@ with tab1:
             st.rerun()
 
         st.markdown("<br>", unsafe_allow_html=True)
-        col_input_mode1, col_input_mode2, col_input_mode3 = st.columns(3)
-        with col_input_mode1:
-            voice_mode = st.toggle("🎙️ Voice Listen Mode", value=False)
+        col_input_mode2, col_input_mode3 = st.columns(2)
         with col_input_mode2:
-            uploaded_img = st.file_uploader("📷 Upload Photo", type=["jpg", "png", "jpeg"], label_visibility="collapsed")
+            uploaded_img = st.file_uploader("📷 Upload Photo", type=["jpg", "png", "jpeg"], label_visibility="collapsed", key=f"file_uploader_{st.session_state.file_uploader_key}")
         with col_input_mode3:
             barcode_input = st.text_input("🏷️ Barcode SKU", placeholder="Scan barcode...", label_visibility="collapsed")
-
-        if voice_mode:
-            st.markdown("""
-            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; padding: 10px; border-radius: 12px; text-align: center; margin-bottom: 10px;">
-                <p style="color: #10b981; margin:0; font-size:0.85rem; font-weight:600;">🎙️ Voice Mode Enabled. Type your spoken query below or use quick buttons.</p>
-            </div>
-            """, unsafe_allow_html=True)
 
         chat_container = st.container(height=400)
         with chat_container:
@@ -383,6 +377,11 @@ with tab1:
                         
                         except Exception as e:
                             st.error(f"Processing Error: {e}")
+
+            # Automatically clear the uploaded photo after processing so it doesn't stay attached
+            if uploaded_img is not None:
+                st.session_state.file_uploader_key += 1
+                st.rerun()
 
 # --- TAB 2: INVENTORY DATABASE ---
 with tab2:
