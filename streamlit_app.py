@@ -194,13 +194,47 @@ html, body, [class*="css"] {
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. ANIMATION LOADER ---
+# --- 3. ANIMATION LOADER & STREAM CLEANER ---
 @st.cache_data
 def load_lottieurl(url: str):
     r = requests.get(url)
     if r.status_code == 200:
         return r.json()
     return None
+
+def generate_cleaned_content(response):
+    text_buffer = ""
+    inside_think = False
+    for chunk in response:
+        content = chunk.choices[0].delta.content
+        if not content:
+            continue
+        text_buffer += content
+        
+        while True:
+            if not inside_think:
+                if "<think>" in text_buffer:
+                    parts = text_buffer.split("<think>", 1)
+                    if parts[0]:
+                        yield parts[0]
+                    text_buffer = parts[1]
+                    inside_think = True
+                else:
+                    if len(text_buffer) > 10:
+                        yield text_buffer[:-10]
+                        text_buffer = text_buffer[-10:]
+                    break
+            else:
+                if "</think>" in text_buffer:
+                    parts = text_buffer.split("</think>", 1)
+                    text_buffer = parts[1]
+                    inside_think = False
+                else:
+                    if len(text_buffer) > 10:
+                        text_buffer = text_buffer[-10:]
+                    break
+    if text_buffer and not inside_think:
+        yield text_buffer
 
 lottie_pulse = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_jcikwtux.json")
 
@@ -388,7 +422,7 @@ with tab1:
                                     stream=True
                                 )
                             
-                            answer = st.write_stream((chunk.choices[0].delta.content for chunk in response if chunk.choices[0].delta.content))
+                            answer = st.write_stream(generate_cleaned_content(response))
                             st.session_state.messages.append({"role": "assistant", "content": answer})
                         
                         except Exception as e:
