@@ -4,8 +4,10 @@ from openai import OpenAI
 import requests
 import time
 from streamlit_lottie import st_lottie
+import base64
+import os
 
-# --- 1. PAGE CONFIGURATION & ZERO PADDING CSS ---
+# --- 1. PAGE CONFIGURATION & FULL VIEWPORT CSS ---
 st.set_page_config(
     page_title="NA Pharma Care AI",
     page_icon="💊",
@@ -13,15 +15,11 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Force zero padding on all containers to remove empty spaces on web and mobile
 st.markdown("""
 <style>
-/* Remove all container padding */
 div[data-testid="stAppViewBlockContainer"] {
-    padding-top: 0px !important;
-    padding-right: 0px !important;
-    padding-left: 0px !important;
-    padding-bottom: 0px !important;
+    padding: 0px !important;
+    max-width: 100% !important;
 }
 div[data-testid="stSidebar"] > div:first-child {
     padding-top: 0px !important;
@@ -30,7 +28,12 @@ header {visibility: hidden !important;}
 #MainMenu {visibility: hidden !important;}
 footer {visibility: hidden !important;}
 
-/* Force full width on standard containers */
+html, body, [data-testid="stAppViewContainer"] {
+    background-color: #020617 !important;
+    height: 100dvh !important;
+    overflow-x: hidden !important;
+}
+
 [data-testid="column"] {
     width: auto !important;
     flex: 1 1 0% !important;
@@ -40,12 +43,11 @@ footer {visibility: hidden !important;}
 """, unsafe_allow_html=True)
 
 
-# --- 2. PREMIUM DARK THEME, NOTCH, CHAT ALIGNMENT & MOBILE FONT FIX CSS ---
+# --- 2. THEME & CHAT ALIGNMENT STYLING ---
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-/* Base Theme */
 html, body, [class*="css"] {
     font-family: 'Poppins', sans-serif !important;
     color: #f8fafc;
@@ -55,15 +57,14 @@ html, body, [class*="css"] {
     background-attachment: fixed;
 }
 
-/* --- THE DYNAMIC NOTCH INSPIRED HEADER --- */
 @media (max-width: 768px) {
     #dynamic-notch {
         position: fixed;
-        top: 10px;
+        top: 6px;
         left: 50%;
         transform: translateX(-50%);
         width: 140px;
-        height: 30px;
+        height: 28px;
         background-color: #020617;
         border-radius: 50px;
         box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
@@ -82,7 +83,7 @@ html, body, [class*="css"] {
         left: 50%;
         transform: translateX(-50%);
         width: 160px;
-        height: 10px;
+        height: 8px;
         background: radial-gradient(circle at top, #10b981 0%, transparent 70%);
         filter: blur(10px);
         opacity: 0.8;
@@ -94,112 +95,86 @@ html, body, [class*="css"] {
     #notch-glow { display: none; }
 }
 
-/* Glassmorphism Dashboard Cards */
 .glass-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-radius: 16px;
-    padding: 20px;
+    padding: 15px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
     text-align: center;
 }
-.glass-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 40px rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-}
 
-.text-primary { color: #10b981; } 
-.text-secondary { color: #3b82f6; } 
-.text-muted { color: #94a3b8; font-size: 0.85rem; }
-.card-value { font-size: 2.2rem; font-weight: 700; margin: 8px 0; color: #f8fafc; }
+.text-muted { color: #94a3b8; font-size: 0.82rem; }
+.card-value { font-size: 1.8rem; font-weight: 700; margin: 4px 0; color: #f8fafc; }
 .status-badge {
     display: inline-flex;
     align-items: center;
     background: rgba(16, 185, 129, 0.1);
     color: #10b981;
-    padding: 5px 14px;
+    padding: 4px 12px;
     border-radius: 50px;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-weight: 600;
     border: 1px solid rgba(16, 185, 129, 0.2);
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 .pulse {
-    width: 7px; height: 7px;
+    width: 6px; height: 6px;
     background-color: #10b981;
     border-radius: 50%;
-    margin-right: 7px;
-    box-shadow: 0 0 10px #10b981;
+    margin-right: 6px;
+    box-shadow: 0 0 8px #10b981;
     animation: pulse-animation 2s infinite;
 }
 @keyframes pulse-animation {
     0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.3); }
-    70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
     100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
-
-/* --- CHAT ALIGNMENT & BUBBLES --- */
 
 [data-testid="stChatMessage"] {
     background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
-    margin-bottom: 25px !important;
-    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    margin-bottom: 20px !important;
 }
 
-/* AI Message (Assistant): Left Aligned */
-[data-testid="stChatMessage"][data-testid*="assistant"], 
 [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]) {
     flex-direction: row !important;
 }
 
-/* User Message: Right Aligned */
 [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) {
     flex-direction: row-reverse !important;
     text-align: right !important;
 }
 [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) [data-testid="stChatMessageContent"] {
-    background: linear-gradient(145deg, rgba(59, 130, 246, 0.2), rgba(29, 78, 216, 0.3)) !important;
-    border: 1px solid rgba(59, 130, 246, 0.2) !important;
+    background: linear-gradient(145deg, rgba(59, 130, 246, 0.25), rgba(29, 78, 216, 0.35)) !important;
+    border: 1px solid rgba(59, 130, 246, 0.3) !important;
 }
 
 [data-testid="stChatMessageContent"] {
-    background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9)) !important;
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.75), rgba(15, 23, 42, 0.9)) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 22px !important;
-    padding: 16px 24px !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 18px !important;
+    padding: 14px 18px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
     backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
     color: #f8fafc !important;
+    max-width: 85% !important;
 }
 
-@keyframes popIn {
-    0% { opacity: 0; transform: translateY(20px) scale(0.95); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.stChatMessageAvatar {
-    border-radius: 12px !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-}
-
-/* Fix font sizes on mobile to default standard text size */
 [data-testid="stChatMessageContent"] div p {
-    font-size: 1rem !important;
-    line-height: 1.5 !important;
+    font-size: 0.95rem !important;
+    line-height: 1.4 !important;
     margin-bottom: 0px !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. ANIMATION LOADER & SPLASH SCREEN ---
+# --- 3. ANIMATION LOADER ---
 @st.cache_data
 def load_lottieurl(url: str):
     r = requests.get(url)
@@ -207,7 +182,7 @@ def load_lottieurl(url: str):
         return r.json()
     return None
 
-lottie_pulse = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_jcikwtux.json") 
+lottie_pulse = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_jcikwtux.json")
 
 if 'splash_shown' not in st.session_state:
     st.session_state.splash_shown = False
@@ -217,92 +192,75 @@ if not st.session_state.splash_shown:
     with splash_placeholder.container():
         st.markdown("<div style='position: fixed; top:0; left:0; width:100vw; height:100dvh; background-color: #0f172a; z-index: 10000; display:flex; flex-direction:column; align-items:center; justify-content:center;'>", unsafe_allow_html=True)
         if lottie_pulse:
-            st_lottie(lottie_pulse, height=150, key="splash_lottie")
-        st.markdown("<h1 style='color: #10b981; font-weight: 700; margin-top:20px;'>NAPC AI</h1></div>", unsafe_allow_html=True)
-    
-    time.sleep(2.5) 
+            st_lottie(lottie_pulse, height=130, key="splash_lottie")
+        st.markdown("<h1 style='color: #10b981; font-weight: 700; margin-top:15px; font-size:1.8rem;'>NAPC AI</h1></div>", unsafe_allow_html=True)
+    time.sleep(1.5)
     splash_placeholder.empty()
     st.session_state.splash_shown = True
 
-# --- 4. THE LIVE DYNAMIC NOTCH INJECTION ---
 st.markdown("""
 <div id="notch-glow"></div>
 <div id="dynamic-notch">SYS: LIVE</div>
 """, unsafe_allow_html=True)
 
-
-# --- 5. DATA LOADER ---
+# --- 4. DATA LOADER ---
 EXCEL_FILE = "inventory.xlsx"
 api_key = st.secrets.get("GROQ_API_KEY")
 
 @st.cache_data
 def load_inventory_data():
+    if not os.path.exists(EXCEL_FILE):
+        return None, None
     try:
         df_master = pd.read_excel(EXCEL_FILE, sheet_name='Full Master Medicine List', header=3)
         df_symptom = pd.read_excel(EXCEL_FILE, sheet_name='Quick Symptom & Keyword Index', header=3)
         return df_master, df_symptom
-    except Exception as e:
+    except Exception:
         return None, None
 
 df_master, df_symptom = load_inventory_data()
 total_medicines = len(df_master) if df_master is not None else 0
 total_categories = len(df_symptom) if df_symptom is not None else 0
 
-# --- 6. BRANDING & COMPACT DASHBOARD ---
-st.markdown("<div style='margin-top: 45px;' class='mobile-spacer'></div>", unsafe_allow_html=True)
-
+# --- 5. DASHBOARD HEADER ---
+st.markdown("<div style='margin-top: 35px;'></div>", unsafe_allow_html=True)
 st.markdown("""
-<div style="text-align: center; padding: 10px 0;">
+<div style="text-align: center; padding: 5px 0;">
     <div class="status-badge"><span class="pulse"></span> System Connected</div>
-    <h1 style="margin:0; font-size: 2.8rem; font-weight: 700; background: linear-gradient(90deg, #10b981, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">💊 NA Pharma Care AI</h1>
-    <p style="color: #94a3b8; font-size: 1rem; margin-top: 4px;">Smart Internal Pharmacy Assistant</p>
+    <h1 style="margin:0; font-size: 2.2rem; font-weight: 700; background: linear-gradient(90deg, #10b981, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">💊 NA Pharma Care AI</h1>
+    <p style="color: #94a3b8; font-size: 0.9rem; margin-top: 2px;">Smart Internal Pharmacy Assistant</p>
 </div>
 """, unsafe_allow_html=True)
 
-col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+col1, col2, col3, col4 = st.columns(4)
 with col1:
-    st.markdown(f"""
-    <div class="glass-card">
-        <p class="text-muted" style="margin:0; text-transform:uppercase; letter-spacing:1px; font-size:0.8rem;">📦 Medicines</p>
-        <p class="card-value">{total_medicines}</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f'<div class="glass-card"><p class="text-muted" style="margin:0; text-transform:uppercase; font-size:0.75rem;">📦 Medicines</p><p class="card-value">{total_medicines}</p></div>', unsafe_allow_html=True)
 with col2:
-    st.markdown(f"""
-    <div class="glass-card">
-        <p class="text-muted" style="margin:0; text-transform:uppercase; letter-spacing:1px; font-size:0.8rem;">📚 Categories</p>
-        <p class="card-value">{total_categories}</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f'<div class="glass-card"><p class="text-muted" style="margin:0; text-transform:uppercase; font-size:0.75rem;">📚 Categories</p><p class="card-value">{total_categories}</p></div>', unsafe_allow_html=True)
 with col3:
-    st.markdown("""
-    <div class="glass-card">
-        <p class="text-muted" style="margin:0; text-transform:uppercase; letter-spacing:1px; font-size:0.8rem;">🤖 AI Status</p>
-        <p class="card-value" style="color:#10b981;">LIVE</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="glass-card"><p class="text-muted" style="margin:0; text-transform:uppercase; font-size:0.75rem;">🤖 AI Status</p><p class="card-value" style="color:#10b981; font-size:1.5rem;">LIVE</p></div>', unsafe_allow_html=True)
 with col4:
     st.markdown("<div style='display:flex; justify-content:center; align-items:center; height:100%;' class='glass-card'>", unsafe_allow_html=True)
     if lottie_pulse:
-        st_lottie(lottie_pulse, height=60, key="live_pulse")
+        st_lottie(lottie_pulse, height=45, key="live_pulse")
     st.markdown("</div>", unsafe_allow_html=True)
 
-st.markdown("<br><br>", unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True)
 
-# --- 7. TABS NAVIGATION ---
+# --- 6. TABS NAVIGATION ---
 tab1, tab2, tab3 = st.tabs(["🤖 AI Assistant", "📚 Database", "🧾 Bill Calculator"])
 
 # --- TAB 1: AI ASSISTANT ---
 with tab1:
     if not api_key:
-        st.error("⚠️ GROQ_API_KEY is missing.")
+        st.error("⚠️ GROQ_API_KEY is missing in Streamlit secrets.")
     else:
         client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
         
         if "messages" not in st.session_state:
             st.session_state.messages = []
 
-        st.markdown("<h5 style='color: #e2e8f0; font-weight: 500; margin-bottom:10px;'>⚡ Counter Lookup</h5>", unsafe_allow_html=True)
+        st.markdown("<h5 style='color: #e2e8f0; font-weight: 500; margin-bottom:8px; font-size:0.95rem;'>⚡ Counter Lookup</h5>", unsafe_allow_html=True)
         q1, q2, q3, q4, q5 = st.columns(5)
         
         selected_prompt = None
@@ -314,141 +272,148 @@ with tab1:
             st.session_state.messages = []
             st.rerun()
 
-        # Multi-modal input toolbar (Voice simulation text input / Image / Barcode scan triggers)
         st.markdown("<br>", unsafe_allow_html=True)
         col_input_mode1, col_input_mode2, col_input_mode3 = st.columns(3)
         with col_input_mode1:
-            voice_mode = st.toggle("🎙️ Enable Voice Listen Mode", value=False)
+            voice_mode = st.toggle("🎙️ Voice Listen Mode", value=False)
         with col_input_mode2:
-            uploaded_img = st.file_uploader("📷 Upload Medicine/Prescription Photo", type=["jpg", "png", "jpeg"], label_visibility="collapsed")
+            uploaded_img = st.file_uploader("📷 Upload Photo", type=["jpg", "png", "jpeg"], label_visibility="collapsed")
         with col_input_mode3:
-            barcode_input = st.text_input("🏷️ Barcode / SKU Scan Lookup", placeholder="Scan or type barcode...", label_visibility="collapsed")
+            barcode_input = st.text_input("🏷️ Barcode SKU", placeholder="Scan barcode...", label_visibility="collapsed")
 
-        chat_container = st.container(height=450)
+        if voice_mode:
+            st.markdown("""
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; padding: 10px; border-radius: 12px; text-align: center; margin-bottom: 10px;">
+                <p style="color: #10b981; margin:0; font-size:0.85rem; font-weight:600;">🎙️ Voice Mode Enabled. Type your spoken query below or use quick buttons.</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+        chat_container = st.container(height=400)
         with chat_container:
             if not st.session_state.messages:
                 st.markdown("""
-                <div style='text-align:center; padding: 40px; color:#94a3b8; font-size: 0.9rem;'>
-                    <h4 style='color:#e2e8f0; font-weight: 500;'>Search medicine, generic, or symptoms instantly...</h4>
-                    <p>Uses of Panadol • Alternative to Brufen • Medicine for sore throat</p>
+                <div style='text-align:center; padding: 30px; color:#94a3b8; font-size: 0.85rem;'>
+                    <h4 style='color:#e2e8f0; font-weight: 500; font-size:1rem;'>Search medicine, generic, or upload image...</h4>
+                    <p>Uses of Panadol • Alternative to Brufen</p>
                 </div>
                 """, unsafe_allow_html=True)
                 
             for message in st.session_state.messages:
-                # Custom avatars: Doctor (👨‍⚕️) for assistant, Ill Cat (😿) for user
                 avatar_icon = "👨‍⚕️" if message["role"] == "assistant" else "😿"
                 with st.chat_message(message["role"], avatar=avatar_icon):
                     st.markdown(message["content"])
 
-        st.markdown("""
-        <style>
-        .stChatInputContainer {
-            position: fixed !important;
-            bottom: 10px !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            width: 90% !important;
-            border-radius: 50px !important;
-            backdrop-filter: blur(10px) !important;
-            -webkit-backdrop-filter: blur(10px) !important;
-            z-index: 999 !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-        
         user_input = st.chat_input("Ask AI...")
         
-        # Build prompt considering barcode input if active
         prompt = selected_prompt or user_input
         if barcode_input:
             prompt = f"Barcode scan lookup for SKU/Code: {barcode_input}"
 
-        if prompt:
-            st.session_state.messages.append({"role": "user", "content": prompt})
+        image_bytes = None
+        if uploaded_img is not None:
+            image_bytes = uploaded_img.getvalue()
+            if not prompt:
+                prompt = "Please analyze this uploaded medicine or prescription image and provide full inventory details."
+
+        if prompt or image_bytes:
+            display_prompt = prompt if prompt else "📷 [Uploaded Medicine Image]"
+            st.session_state.messages.append({"role": "user", "content": display_prompt})
             
             with chat_container:
                 with st.chat_message("user", avatar="😿"):
-                    st.markdown(prompt)
+                    st.markdown(display_prompt)
+                    if uploaded_img is not None:
+                        st.image(uploaded_img, width=200)
 
                 with st.chat_message("assistant", avatar="👨‍⚕️"):
-                    with st.spinner("🔍 Scanning Database & Processing Inputs..."):
+                    with st.spinner("👨‍⚕️ Analyzing database & image..."):
                         try:
-                            q = prompt.lower().strip()
+                            q = prompt.lower().strip() if prompt else ""
                             context = "--- DATABASE SCAN RESULTS ---\n"
                             
-                            if df_master is not None:
+                            if df_master is not None and q:
                                 master_matches = df_master[df_master.apply(lambda row: row.astype(str).str.lower().str.contains(q, na=False).any(), axis=1)]
                                 context += master_matches.head(10).to_string(index=False) if not master_matches.empty else "No exact matches found in master list."
 
-                            system_instruction = f"""
-                            You are NA Pharma Care AI V3, the direct, internal pharmacy assistant for the NA family counter team led by a professional doctor persona.
+                            system_instruction = """
+                            You are NA Pharma Care AI V3, the direct, internal pharmacy assistant led by a professional doctor persona.
 
-                            STRICT RESPONSE FORMAT (DO NOT USE TABLES OR CODE BLOCKS). Whenever you suggest a medicine, you MUST format it EXACTLY like this beautiful *Simplified* virtual card:
+                            STRICT RESPONSE FORMAT (DO NOT USE TABLES OR CODE BLOCKS). Whenever you suggest a medicine, format it EXACTLY like this:
 
                             **💊 [Brand Name]**  
                             🔬 *Generic: [Salt Name]*  
                             📝 *Categories: [Primary Categories]*  
                             ---
-                            
-                            🔹 **Uses:** [Primary uses, keep short]  
-                            🔹 **Dosage:** [Standard dosage, keep short]  
-                            ⚠️ **Warnings:** [Key precaution, keep short]  
+                            🔹 **Uses:** [Primary uses, short]  
+                            🔹 **Dosage:** [Standard dosage, short]  
+                            ⚠️ **Warnings:** [Key precaution, short]  
                             🔄 **Alternatives:** [List max 2 alternative brands sharing salt]  
                             ---
-                            
-                            RETRIEVED INVENTORY DATA FOR THIS QUERY:
-                            {context}
-
-                            ACT AS EXPENSIVE MEDICAL SOFTWARE: Be concise, focus on immediate counter-lookup needs, and output minimal text while maintaining professional clarity. NEVER use long paragraphs.
+                            Be concise, focus on immediate counter-lookup needs, and output minimal text.
                             """
 
                             messages_payload = [{"role": "system", "content": system_instruction}]
                             for m in st.session_state.messages:
-                                messages_payload.append({"role": m["role"], "content": m["content"]})
+                                if "📷" not in m["content"]:
+                                    messages_payload.append({"role": m["role"], "content": m["content"]})
 
-                            response = client.chat.completions.create(
-                                model="llama-3.1-8b-instant",
-                                messages=messages_payload,
-                                stream=True
-                            )
+                            if image_bytes is not None:
+                                base64_image = base64.b64encode(image_bytes).decode('utf-8')
+                                messages_payload.append({
+                                    "role": "user",
+                                    "content": [
+                                        {"type": "text", "text": prompt if prompt else "Analyze this image"},
+                                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                                    ]
+                                })
+                                response = client.chat.completions.create(
+                                    model="llama-3.2-11b-vision-preview",
+                                    messages=messages_payload,
+                                    stream=True
+                                )
+                            else:
+                                response = client.chat.completions.create(
+                                    model="llama-3.1-8b-instant",
+                                    messages=messages_payload,
+                                    stream=True
+                                )
                             
                             answer = st.write_stream((chunk.choices[0].delta.content for chunk in response if chunk.choices[0].delta.content))
                             st.session_state.messages.append({"role": "assistant", "content": answer})
                         
                         except Exception as e:
-                            st.error(f"API Error: {e}")
+                            st.error(f"Processing Error: {e}")
 
 # --- TAB 2: INVENTORY DATABASE ---
 with tab2:
     if df_master is not None:
-        st.markdown("<h3 style='color: #f8fafc; margin-bottom:10px;'>📦 Master Database Scan</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #f8fafc; margin-bottom:10px; font-size:1.2rem;'>📦 Master Database Scan</h3>", unsafe_allow_html=True)
         search_term = st.text_input("🔍 Filter database instantly...", "")
         if search_term:
             filtered_df = df_master[df_master.apply(lambda row: row.astype(str).str.lower().str.contains(search_term.lower(), na=False).any(), axis=1)]
             st.dataframe(filtered_df, use_container_width=True)
         else:
             st.dataframe(df_master, use_container_width=True)
+    else:
+        st.info("ℹ️ inventory.xlsx not found in the directory. Please upload your master database file.")
 
 # --- TAB 3: BILL CALCULATOR ---
 with tab3:
-    st.markdown("<h3 style='color: #f8fafc; margin-bottom:10px;'>🧾 Bill Estimator</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color: #f8fafc; margin-bottom:10px; font-size:1.2rem;'>🧾 Bill Estimator</h3>", unsafe_allow_html=True)
     if df_master is not None and "Brand Name" in df_master.columns:
         medicine_list = df_master["Brand Name"].dropna().tolist()
         selected_meds = st.multiselect("Select Medicines:", medicine_list)
         
         if selected_meds:
             total_amount = 0.0
-            bill_items = []
-            
             for med in selected_meds:
                 col_n, col_p, col_q = st.columns([2, 1, 1])
-                with col_n: st.markdown(f"<p style='margin-top:10px; font-weight:600;'>{med}</p>", unsafe_allow_html=True)
+                with col_n: st.markdown(f"<p style='margin-top:10px; font-weight:600; font-size:0.9rem;'>{med}</p>", unsafe_allow_html=True)
                 with col_p: price = st.number_input(f"Price", min_value=0.0, value=100.0, step=10.0, key=f"p_{med}")
                 with col_q: qty = st.number_input(f"Qty", min_value=1, value=1, step=1, key=f"q_{med}")
-                
-                item_total = price * qty
-                total_amount += item_total
-                bill_items.append({"Medicine": med, "Qty": qty, "Price": price, "Total": item_total})
+                total_amount += (price * qty)
             
             st.markdown("<br><hr style='border-color: #334155;'>", unsafe_allow_html=True)
-            st.markdown(f"<h2 style='color: #10b981; font-weight:700;'>Grand Total: Rs. {total_amount:,.2f}</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h2 style='color: #10b981; font-weight:700; font-size:1.5rem;'>Grand Total: Rs. {total_amount:,.2f}</h2>", unsafe_allow_html=True)
+    else:
+        st.info("ℹ️ Load inventory database to use bill calculator.")
