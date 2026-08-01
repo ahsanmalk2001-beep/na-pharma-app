@@ -1,6 +1,5 @@
 streamlit
 pandas
-openpyxl
 openai
 requests
-streamlit-lottie
+openpyxl
