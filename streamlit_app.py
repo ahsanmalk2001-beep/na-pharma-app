@@ -4,7 +4,7 @@ from openai import OpenAI
 import base64
 import os
 
-# --- 1. PAGE CONFIGURATION & 3D ANIMATED CSS ---
+# --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="NA Pharma Care AI",
     page_icon="💊",
@@ -12,163 +12,175 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Injecting 3D floating HTML shapes directly into the background
+# --- 2. LIVE 3D ANIMATED BACKGROUND (GPU ACCELERATED FOR SPEED) ---
+# We inject fixed HTML elements that will act as the live 3D floating objects.
 st.markdown("""
-<div class="hologram-orb orb-1"></div>
-<div class="hologram-orb orb-2"></div>
+<div class="animated-bg">
+    <ul class="cube-container">
+        <li></li><li></li><li></li><li></li><li></li>
+        <li></li><li></li><li></li><li></li><li></li>
+    </ul>
+</div>
 """, unsafe_allow_html=True)
 
 st.markdown("""
 <style>
 /* --- HIDE STREAMLIT BRANDING --- */
 #MainMenu {visibility: hidden !important;}
-header {visibility: hidden !important;}
+header {visibility: hidden !important; background: transparent !important;}
 footer {visibility: hidden !important; display: none !important;}
 .stDeployButton {display: none !important;}
 [data-testid="stToolbar"] {display: none !important;}
-[data-testid="stDecoration"] {display: none !important;}
 
-/* --- CORE APP BACKGROUND --- */
-html, body, [data-testid="stAppViewContainer"], .stApp {
-    background-color: #030712 !important;
-    color: #f8fafc !important;
-    overflow-x: hidden !important;
+/* --- FORCE TRANSPARENT STREAMLIT LAYERS SO THE 3D BACKGROUND SHOWS --- */
+.stApp, html, body, [data-testid="stAppViewContainer"] {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #ffffff !important;
 }
 
-/* --- 3D MOVING CYBER-GRID (PARALLAX FLOOR) --- */
-.stApp::before {
-    content: '';
+/* --- THE VIBRANT THEME & 3D LIVE OBJECTS --- */
+.animated-bg {
     position: fixed;
-    top: 0; left: -50vw;
-    width: 200vw; height: 200vh;
-    background-image: 
-        linear-gradient(rgba(16, 185, 129, 0.15) 2px, transparent 2px),
-        linear-gradient(90deg, rgba(16, 185, 129, 0.15) 2px, transparent 2px);
-    background-size: 80px 80px;
-    transform: perspective(600px) rotateX(60deg) translateY(-100px) translateZ(-200px);
-    animation: gridScroll 10s linear infinite;
-    z-index: -3;
-    pointer-events: none;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    /* Vibrant deep purple/blue tech gradient */
+    background: linear-gradient(135deg, #09031a, #1a0b2e, #0f1c3f, #001429);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    z-index: -999;
 }
 
-@keyframes gridScroll {
-    0% { transform: perspective(600px) rotateX(60deg) translateY(0) translateZ(-200px); }
-    100% { transform: perspective(600px) rotateX(60deg) translateY(80px) translateZ(-200px); }
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
-/* --- 3D MORPHING LIQUID ORBS --- */
-.hologram-orb {
-    position: fixed;
-    border-radius: 50%;
-    filter: blur(80px);
-    z-index: -2;
-    pointer-events: none;
-    opacity: 0.45;
+.cube-container {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; margin:0; padding:0;
 }
 
-.orb-1 {
-    top: -10%; left: -10%;
-    width: 500px; height: 500px;
-    background: linear-gradient(135deg, #0ea5e9, #10b981);
-    animation: liquidSpin 20s infinite linear alternate, orbFloat 15s infinite ease-in-out;
+.cube-container li {
+    position: absolute; list-style: none; display: block;
+    background: rgba(0, 229, 255, 0.1);
+    border: 1px solid rgba(0, 229, 255, 0.5);
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.5), inset 0 0 15px rgba(0, 229, 255, 0.3);
+    animation: float3D 20s linear infinite;
+    bottom: -150px;
+    border-radius: 8px; /* Slightly rounded */
 }
 
-.orb-2 {
-    bottom: -10%; right: -10%;
-    width: 600px; height: 600px;
-    background: linear-gradient(135deg, #ec4899, #8b5cf6);
-    animation: liquidSpin 25s infinite linear alternate-reverse, orbFloat 18s infinite ease-in-out reverse;
+/* Magenta Cubes */
+.cube-container li:nth-child(even) {
+    background: rgba(255, 0, 127, 0.1);
+    border: 1px solid rgba(255, 0, 127, 0.5);
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.5), inset 0 0 15px rgba(255, 0, 127, 0.3);
 }
 
-@keyframes liquidSpin {
-    0% { transform: perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
-    100% { transform: perspective(1000px) rotateX(180deg) rotateY(360deg) scale(1.2); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+/* Randomizing size, position, and speed of 3D objects */
+.cube-container li:nth-child(1) { left: 10%; width: 60px; height: 60px; animation-duration: 25s; animation-delay: 0s; }
+.cube-container li:nth-child(2) { left: 25%; width: 30px; height: 30px; animation-duration: 15s; animation-delay: 2s; }
+.cube-container li:nth-child(3) { left: 45%; width: 100px; height: 100px; animation-duration: 30s; animation-delay: 4s; }
+.cube-container li:nth-child(4) { left: 65%; width: 45px; height: 45px; animation-duration: 20s; animation-delay: 0s; }
+.cube-container li:nth-child(5) { left: 80%; width: 80px; height: 80px; animation-duration: 35s; animation-delay: 1s; }
+.cube-container li:nth-child(6) { left: 15%; width: 50px; height: 50px; animation-duration: 18s; animation-delay: 5s; }
+.cube-container li:nth-child(7) { left: 55%; width: 120px; height: 120px; animation-duration: 40s; animation-delay: 7s; }
+.cube-container li:nth-child(8) { left: 35%; width: 25px; height: 25px; animation-duration: 12s; animation-delay: 3s; }
+.cube-container li:nth-child(9) { left: 75%; width: 70px; height: 70px; animation-duration: 22s; animation-delay: 6s; }
+.cube-container li:nth-child(10) { left: 90%; width: 40px; height: 40px; animation-duration: 14s; animation-delay: 2s; }
+
+/* The actual GPU-accelerated 3D movement */
+@keyframes float3D {
+    0% { transform: translateY(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-120vh) rotateX(360deg) rotateY(720deg) rotateZ(360deg); opacity: 0; }
 }
 
-@keyframes orbFloat {
-    0% { top: -10%; left: -10%; }
-    50% { top: 20%; left: 10%; }
-    100% { top: -5%; left: -15%; }
-}
-
-/* --- HIGH-END GLASSMORPHISM FOR PANELS --- */
-div[data-testid="stAppViewBlockContainer"] {
-    padding: 20px !important; 
-    max-width: 95% !important;
-    z-index: 1;
-}
-
+/* --- GLASSMORPHISM UI PANELS --- */
 [data-testid="stChatMessageContent"] {
-    background: rgba(15, 23, 42, 0.4) !important;
-    backdrop-filter: blur(25px) !important;
-    -webkit-backdrop-filter: blur(25px) !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
-    border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.5) !important;
-    border-right: 1px solid rgba(0, 0, 0, 0.5) !important;
+    background: rgba(15, 10, 30, 0.6) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(0, 229, 255, 0.3) !important;
     border-radius: 16px !important;
     padding: 16px !important; 
-    box-shadow: 10px 15px 35px rgba(0, 0, 0, 0.4) !important;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-    transform-style: preserve-3d;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.3s ease !important;
 }
 
-/* 3D TILT HOVER EFFECT ON CHAT */
 [data-testid="stChatMessageContent"]:hover {
-    transform: perspective(1000px) scale(1.02) rotateX(3deg) rotateY(-3deg) !important;
-    box-shadow: -15px 25px 45px rgba(16, 185, 129, 0.2) !important;
-    border-top: 1px solid rgba(16, 185, 129, 0.5) !important;
+    transform: translateY(-5px) !important;
+    box-shadow: 0 12px 40px rgba(0, 229, 255, 0.3) !important;
+    border-color: rgba(0, 229, 255, 0.8) !important;
 }
 
-/* --- TACTICAL 3D BUTTONS --- */
+/* --- NEON BUTTONS --- */
 .stButton button {
-    background: linear-gradient(145deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8)) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(0, 229, 255, 0.4) !important;
     border-radius: 12px !important;
-    backdrop-filter: blur(10px) !important;
-    transition: all 0.3s ease-in-out !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
-    color: #e2e8f0 !important;
+    color: #00e5ff !important;
     font-weight: bold !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    transition: all 0.3s ease !important;
 }
 
 .stButton button:hover {
-    transform: perspective(500px) translateZ(20px) translateY(-3px) scale(1.05) !important;
-    box-shadow: 0 15px 30px rgba(59, 130, 246, 0.4), inset 0 0 15px rgba(16, 185, 129, 0.3) !important;
-    border-color: rgba(16, 185, 129, 0.8) !important;
-    color: #fff !important;
+    background: rgba(0, 229, 255, 0.15) !important;
+    border-color: #00e5ff !important;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.6) !important;
+    color: #ffffff !important;
+    transform: scale(1.05) !important;
 }
 
-/* --- NEON SHINING HEADER --- */
-.animated-title {
-    margin:0; 
+/* --- TEXT INPUT & TABS --- */
+[data-testid="stChatInput"] {
+    background: rgba(10, 5, 20, 0.8) !important;
+    border: 1px solid rgba(255, 0, 127, 0.5) !important;
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.2) !important;
+    border-radius: 12px !important;
+}
+
+[data-baseweb="tab"] {
+    background: transparent !important;
+    color: #b3b3b3 !important;
+}
+[data-baseweb="tab"][aria-selected="true"] {
+    color: #00e5ff !important;
+    border-bottom-color: #00e5ff !important;
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.5) !important;
+}
+
+/* --- SUPER GLOWING HEADER --- */
+.glowing-title {
+    margin: 0; 
     font-weight: 900; 
-    font-size: 3rem !important;
-    letter-spacing: -1px;
-    background: linear-gradient(90deg, #0ea5e9, #10b981, #ec4899, #0ea5e9);
-    background-size: 300% auto;
+    font-size: 3.5rem !important;
+    text-align: center;
+    background: linear-gradient(90deg, #00e5ff, #ff007f, #00e5ff);
+    background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: textShine 4s linear infinite;
-    text-shadow: 0 10px 30px rgba(16, 185, 129, 0.2);
+    animation: neonShine 3s linear infinite;
+    text-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
 }
 
-@keyframes textShine {
-    to { background-position: 300% center; }
+@keyframes neonShine {
+    to { background-position: 200% center; }
 }
 
-/* Table styling for dark UI */
+/* Table styling */
 [data-testid="stDataFrame"] {
-    background: rgba(15, 23, 42, 0.6) !important;
-    backdrop-filter: blur(20px) !important;
+    background: rgba(15, 10, 30, 0.6) !important;
+    backdrop-filter: blur(15px) !important;
     border-radius: 12px !important;
-    padding: 10px;
-    border: 1px solid rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(0, 229, 255, 0.3) !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 2. HIGH-SPEED DATA LOADER ---
+# --- 3. HIGH-SPEED DATA LOADER ---
 EXCEL_FILE = "inventory.xlsx"
 api_key = st.secrets.get("GROQ_API_KEY")
 
@@ -186,7 +198,7 @@ def load_inventory_data():
 
 df_master = load_inventory_data()
 
-# --- 3. HELPER FUNCTIONS ---
+# --- 4. HELPER FUNCTIONS ---
 def generate_cleaned_content(response):
     for chunk in response:
         if chunk.choices and chunk.choices[0].delta.content:
@@ -195,15 +207,15 @@ def generate_cleaned_content(response):
 def encode_image(uploaded_file):
     return base64.b64encode(uploaded_file.getvalue()).decode('utf-8')
 
-# --- 4. HEADER ---
+# --- 5. HEADER ---
 st.markdown("""
 <div style="text-align: center; padding: 20px 0 40px 0;">
-    <h1 class="animated-title">NA Pharma Care AI</h1>
-    <p style="color: #94a3b8; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 2px;">Smart Internal Pharmacy Terminal</p>
+    <h1 class="glowing-title">NA Pharma Care AI</h1>
+    <p style="color: #00e5ff; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 2px;">Smart Internal Pharmacy Terminal</p>
 </div>
 """, unsafe_allow_html=True)
 
-# --- 5. TABS NAVIGATION ---
+# --- 6. TABS NAVIGATION ---
 tab1, tab2, tab3, tab4 = st.tabs(["🤖 AI & Vision", "📚 Database", "🧾 Bill Calc", "➕ Add Med"])
 
 # --- TAB 1: AI ASSISTANT & VISION ---
@@ -227,10 +239,8 @@ with tab1:
             st.session_state.messages = []
             st.rerun()
 
-        # Prescription / Medicine Image Upload
         uploaded_img = st.file_uploader("📷 Upload Prescription or Medicine Image", type=["png", "jpg", "jpeg"])
         
-        # Chat History Container
         chat_container = st.container(height=400)
         with chat_container:
             for message in st.session_state.messages:
@@ -245,7 +255,6 @@ with tab1:
         prompt = selected_prompt or user_input
 
         if prompt:
-            # Vision vs Text model selector
             if uploaded_img:
                 base64_img = encode_image(uploaded_img)
                 user_content = [
@@ -271,7 +280,6 @@ with tab1:
                             context_data = "No specific medication matches found for this query."
                             total_meds_count = len(df_master) if df_master is not None else 0
                             
-                            # Filter inventory for context (Excluding side effects column)
                             if df_master is not None and not uploaded_img: 
                                 search_words = [w for w in prompt.lower().split() if len(w) > 3]
                                 exclude_cols = ['Common Side Effects', 'Warnings & Contraindications', 'S.No', 'S. No']
@@ -324,7 +332,7 @@ with tab2:
     st.markdown("### 📦 Direct Medicine Lookup")
     
     if df_master is not None:
-        search_term = st.text_input("🔍 Search symptom, category, or medicine (e.g., 'Headache', 'Pain', 'Allergy')...", "")
+        search_term = st.text_input("🔍 Search symptom, category, or medicine...", "")
         
         essential_cols = [c for c in ['Brand Name', 'Active Salt / Generic Composition', 'Therapeutic Category', 'Primary Uses & Indications'] if c in df_master.columns]
         display_cols = essential_cols if essential_cols else df_master.columns[:4]
@@ -372,7 +380,7 @@ with tab3:
                 with col_p: price = st.number_input(f"Price (Rs)", min_value=0.0, value=100.0, step=10.0, key=f"p_{med}")
                 with col_q: qty = st.number_input(f"Qty", min_value=1, value=1, step=1, key=f"q_{med}")
                 total_amount += (price * qty)
-            st.markdown(f"<h2 style='color: #10b981; text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);'>Total Bill: Rs. {total_amount:,.2f}</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h2 style='color: #00e5ff; text-shadow: 0 0 20px rgba(0, 229, 255, 0.4);'>Total Bill: Rs. {total_amount:,.2f}</h2>", unsafe_allow_html=True)
 
 # --- TAB 4: ADD NEW MEDICINE ---
 with tab4:
