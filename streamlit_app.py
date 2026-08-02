@@ -12,22 +12,31 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. LIVE DYNAMIC MEDICAL DEBRIS DROP & PILE-UP EFFECT ---
+# --- 2. 3D BACKGROUND CUBES + THROW & PILE MEDICAL OBJECTS ---
 st.markdown("""
-<div class="debris-container">
-    <span style="--x: 5%; --delay: 0.1s; --rot: 45deg;">💊</span>
-    <span style="--x: 12%; --delay: 0.4s; --rot: -30deg;">💉</span>
-    <span style="--x: 20%; --delay: 0.2s; --rot: 90deg;">🩺</span>
-    <span style="--x: 28%; --delay: 0.6s; --rot: -120deg;">🩹</span>
-    <span style="--x: 35%; --delay: 0.3s; --rot: 15deg;">🧬</span>
-    <span style="--x: 42%; --delay: 0.7s; --rot: -60deg;">💊</span>
-    <span style="--x: 50%; --delay: 0.15s; --rot: 180deg;">💉</span>
-    <span style="--x: 58%; --delay: 0.5s; --rot: -15deg;">🩺</span>
-    <span style="--x: 65%; --delay: 0.35s; --rot: 110deg;">🩹</span>
-    <span style="--x: 72%; --delay: 0.8s; --rot: -90deg;">💊</span>
-    <span style="--x: 80%; --delay: 0.25s; --rot: 30deg;">🧬</span>
-    <span style="--x: 88%; --delay: 0.55s; --rot: -45deg;">💉</span>
-    <span style="--x: 95%; --delay: 0.05s; --rot: 75deg;">🩺</span>
+<div class="animated-bg">
+    <ul class="cube-container">
+        <li></li><li></li><li></li><li></li><li></li>
+        <li></li><li></li><li></li><li></li><li></li>
+    </ul>
+</div>
+
+<div class="medical-toss">
+    <span style="left: 4%;">💊</span>
+    <span style="left: 12%;">💉</span>
+    <span style="left: 20%;">🩺</span>
+    <span style="left: 28%;">💊</span>
+    <span style="left: 36%;">🩹</span>
+    <span style="left: 44%;">🧬</span>
+    <span style="left: 52%;">💉</span>
+    <span style="left: 60%;">💊</span>
+    <span style="left: 68%;">🩺</span>
+    <span style="left: 76%;">🩹</span>
+    <span style="left: 84%;">💊</span>
+    <span style="left: 92%;">💉</span>
+    <span style="left: 8%;">🩺</span>
+    <span style="left: 48%;">💊</span>
+    <span style="left: 88%;">🩹</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -47,15 +56,14 @@ footer {visibility: hidden !important; display: none !important;}
     color: #ffffff !important;
 }
 
-/* --- DYNAMIC BACKGROUND & REALISTIC THROW / PILE EFFECT --- */
-.debris-container {
+/* --- VIBRANT 3D BACKGROUND CUBES --- */
+.animated-bg {
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
-    background: linear-gradient(135deg, #050511, #120826, #0a192f, #000c18);
+    background: linear-gradient(135deg, #09031a, #1a0b2e, #0f1c3f, #001429);
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
     z-index: -999;
-    overflow: hidden;
     pointer-events: none;
 }
 
@@ -65,50 +73,117 @@ footer {visibility: hidden !important; display: none !important;}
     100% { background-position: 0% 50%; }
 }
 
-.debris-container span {
-    position: absolute;
-    display: block;
-    font-size: 2.2rem;
-    left: var(--x);
-    top: -10vh;
-    opacity: 0;
-    animation: throwAndPile 4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-    animation-delay: var(--delay);
-    user-select: none;
-    z-index: -998;
+.cube-container {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; margin:0; padding:0;
 }
 
-@keyframes throwAndPile {
+.cube-container li {
+    position: absolute; list-style: none; display: block;
+    background: rgba(0, 229, 255, 0.1);
+    border: 1px solid rgba(0, 229, 255, 0.5);
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.5), inset 0 0 15px rgba(0, 229, 255, 0.3);
+    animation: float3D 20s linear infinite;
+    bottom: -150px;
+    border-radius: 8px;
+}
+
+.cube-container li:nth-child(even) {
+    background: rgba(255, 0, 127, 0.1);
+    border: 1px solid rgba(255, 0, 127, 0.5);
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.5), inset 0 0 15px rgba(255, 0, 127, 0.3);
+}
+
+.cube-container li:nth-child(1) { left: 10%; width: 60px; height: 60px; animation-duration: 25s; animation-delay: 0s; }
+.cube-container li:nth-child(2) { left: 25%; width: 30px; height: 30px; animation-duration: 15s; animation-delay: 2s; }
+.cube-container li:nth-child(3) { left: 45%; width: 100px; height: 100px; animation-duration: 30s; animation-delay: 4s; }
+.cube-container li:nth-child(4) { left: 65%; width: 45px; height: 45px; animation-duration: 20s; animation-delay: 0s; }
+.cube-container li:nth-child(5) { left: 80%; width: 80px; height: 80px; animation-duration: 35s; animation-delay: 1s; }
+.cube-container li:nth-child(6) { left: 15%; width: 50px; height: 50px; animation-duration: 18s; animation-delay: 5s; }
+.cube-container li:nth-child(7) { left: 55%; width: 120px; height: 120px; animation-duration: 40s; animation-delay: 7s; }
+.cube-container li:nth-child(8) { left: 35%; width: 25px; height: 25px; animation-duration: 12s; animation-delay: 3s; }
+.cube-container li:nth-child(9) { left: 75%; width: 70px; height: 70px; animation-duration: 22s; animation-delay: 6s; }
+.cube-container li:nth-child(10) { left: 90%; width: 40px; height: 40px; animation-duration: 14s; animation-delay: 2s; }
+
+@keyframes float3D {
+    0% { transform: translateY(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-120vh) rotateX(360deg) rotateY(720deg) rotateZ(360deg); opacity: 0; }
+}
+
+/* --- THROW & PILE PHYSICS ANIMATION --- */
+.medical-toss {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    z-index: -998;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.medical-toss span {
+    position: absolute;
+    display: block;
+    font-size: 2.3rem;
+    animation: tossAndPile 4.5s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+    bottom: 110vh;
+    opacity: 0;
+    user-select: none;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+}
+
+/* Staggering individual throw timing and rotation details */
+.medical-toss span:nth-child(1)  { animation-delay: 0.1s; animation-duration: 4.2s; }
+.medical-toss span:nth-child(2)  { animation-delay: 0.4s; animation-duration: 4.0s; }
+.medical-toss span:nth-child(3)  { animation-delay: 0.2s; animation-duration: 4.5s; }
+.medical-toss span:nth-child(4)  { animation-delay: 0.6s; animation-duration: 3.8s; }
+.medical-toss span:nth-child(5)  { animation-delay: 0.3s; animation-duration: 4.3s; }
+.medical-toss span:nth-child(6)  { animation-delay: 0.7s; animation-duration: 4.1s; }
+.medical-toss span:nth-child(7)  { animation-delay: 0.5s; animation-duration: 4.6s; }
+.medical-toss span:nth-child(8)  { animation-delay: 0.2s; animation-duration: 3.9s; }
+.medical-toss span:nth-child(9)  { animation-delay: 0.8s; animation-duration: 4.4s; }
+.medical-toss span:nth-child(10) { animation-delay: 0.4s; animation-duration: 4.0s; }
+.medical-toss span:nth-child(11) { animation-delay: 0.9s; animation-duration: 4.2s; }
+.medical-toss span:nth-child(12) { animation-delay: 0.3s; animation-duration: 4.5s; }
+.medical-toss span:nth-child(13) { animation-delay: 0.6s; animation-duration: 3.9s; }
+.medical-toss span:nth-child(14) { animation-delay: 0.1s; animation-duration: 4.3s; }
+.medical-toss span:nth-child(15) { animation-delay: 0.5s; animation-duration: 4.1s; }
+
+@keyframes tossAndPile {
     0% {
-        top: -10vh;
+        transform: translateY(-80px) rotate(0deg) scale(0.6);
         opacity: 0;
-        transform: translateY(0) rotate(0deg) scale(1.2);
     }
-    10% {
+    8% {
         opacity: 1;
     }
-    /* Fast gravity drop ending up right at the bottom screen bounds */
-    70% {
-        top: 88vh;
+    22% {
+        /* Fast drop slam to bottom (junk pile forms) */
+        transform: translateY(82vh) rotate(540deg) scale(1.1);
         opacity: 1;
-        transform: translateY(0) rotate(var(--rot)) scale(1);
     }
-    /* Settle into a junk pile */
+    26% {
+        /* Bounce back slightly */
+        transform: translateY(77vh) rotate(580deg) scale(1);
+        opacity: 1;
+    }
+    30% {
+        /* Settles into heap at bottom */
+        transform: translateY(83vh) rotate(560deg) scale(1);
+        opacity: 1;
+    }
+    72% {
+        /* Rests in the junk pile */
+        transform: translateY(83vh) rotate(560deg) scale(1);
+        opacity: 1;
+    }
     82% {
-        top: 86vh;
-        opacity: 1;
-        transform: translateY(0) rotate(calc(var(--rot) + 10deg)) scale(0.95);
-    }
-    /* Fade out / disappear cleanly after sitting as junk */
-    92% {
-        top: 86vh;
-        opacity: 0.8;
-        transform: scale(0.9);
+        /* Disappears/fades out from the pile */
+        transform: translateY(83vh) rotate(560deg) scale(1);
+        opacity: 0;
     }
     100% {
-        top: 86vh;
+        transform: translateY(-80px) rotate(0deg) scale(0.6);
         opacity: 0;
-        transform: scale(0.5);
     }
 }
 
