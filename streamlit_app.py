@@ -47,7 +47,7 @@ footer {visibility: hidden !important; display: none !important;}
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* --- SUBTLE GRID OVERLAY (MAKES IT FEEL "ALIVE" & SCI-FI) --- */
+/* --- SUBTLE GRID OVERLAY --- */
 .grid-overlay {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     background-image: linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
@@ -142,7 +142,7 @@ footer {visibility: hidden !important; display: none !important;}
     100% { transform: translateY(var(--land)) rotate(var(--rot)) scale(1); opacity: 0; }
 }
 
-/* --- LIVE PULSING HUD BADGE ---. */
+/* --- LIVE PULSING HUD BADGE --- */
 .live-badge {
     display: inline-flex; align-items: center; gap: 8px;
     background: rgba(0, 229, 255, 0.1);
@@ -162,7 +162,7 @@ footer {visibility: hidden !important; display: none !important;}
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 229, 255, 0); }
 }
 
-/* --- HUD GLASS PANELS WITH HOVER GLOW --- */
+/* --- HUD GLASS PANELS --- */
 .hud-card {
     background: rgba(12, 8, 25, 0.75) !important;
     backdrop-filter: blur(18px) !important;
@@ -178,7 +178,7 @@ footer {visibility: hidden !important; display: none !important;}
     transform: translateY(-2px);
 }
 
-/* --- NEON BUTTONS & CHIPS --- */
+/* --- NEON BUTTONS --- */
 .stButton button {
     background: rgba(255, 255, 255, 0.04) !important;
     border: 1px solid rgba(0, 229, 255, 0.35) !important;
@@ -225,7 +225,6 @@ footer {visibility: hidden !important; display: none !important;}
     to { background-position: 200% center; }
 }
 
-/* --- DATA TABLES --- */
 [data-testid="stDataFrame"] {
     background: rgba(10, 6, 20, 0.7) !important;
     backdrop-filter: blur(15px) !important;
@@ -316,16 +315,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- 6. TABS NAVIGATION ---
-tab1, tab2 = st.tabs(["⚡ Command Center", "➕ Add Med"])
+tab1, tab2 = st.tabs(["⚡ Command Center", "➕ Inventory Ingestion Hub"])
 
-# --- TAB 1: COMMAND CENTER (UNIFIED SEARCH & AI) ---
+# --- TAB 1: COMMAND CENTER ---
 with tab1:
     if not api_key:
         st.error("⚠️ GROQ_API_KEY missing in Streamlit secrets.")
     else:
         client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
         
-        # One-Tap Symptom Chips
         st.markdown("<p style='color: #00e5ff; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;'>⚡ Instant Neural Symptom Chips:</p>", unsafe_allow_html=True)
         c1, c2, c3, c4, c5, c6 = st.columns([1,1,1,1,1,1.2])
         chip_query = None
@@ -336,7 +334,6 @@ with tab1:
         if c5.button("🤢 Stomach"): chip_query = "stomach"
         if c6.button("🧹 Clear Matrix"): chip_query = ""
 
-        # Spotlight Search Bar
         search_input = st.text_input("🔍 Spotlight Command Search (Type brand, generic salt, or symptom e.g., 'fever')...", value=chip_query if chip_query is not None else "")
         active_query = search_input.strip()
 
@@ -381,7 +378,6 @@ with tab1:
                             stream=False
                         )
                         
-                        # Wrapped inside an elite HUD card for realistic live feed look
                         st.markdown(f"""
                         <div class="hud-card" style="margin-top: 10px;">
                             {response.choices[0].message.content}
@@ -398,38 +394,152 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
 
-# --- TAB 2: ADD MEDICINE ---
+# --- TAB 2: ADVANCED INGESTION HUB ---
 with tab2:
-    st.markdown("### ➕ Register New Medicine into Matrix")
-    if df_master is not None:
-        with st.form("add_medicine_form"):
-            new_brand = st.text_input("Brand Name / Medicine Name*")
-            new_generic = st.text_input("Generic / Active Salt")
-            new_category = st.text_input("Therapeutic Category")
-            new_uses = st.text_input("Primary Uses (e.g., Headache, Fever, Pain, Cough)")
+    st.markdown("### ➕ Advanced Inventory Ingestion Hub")
+    
+    sub_tab1, sub_tab2, sub_tab3, sub_tab4, sub_tab5 = st.tabs([
+        "📷 Handwritten Paper Scanner", 
+        "⚡ AI Text / WhatsApp Parser", 
+        "📁 Bulk File Importer", 
+        "📋 Live Browser Grid", 
+        "📝 Single Item Form"
+    ])
+    
+    # --- SUB-TAB 1: HANDWRITTEN PAPER SCANNER (VISION AI) ---
+    with sub_tab1:
+        st.markdown("""
+        <div class="hud-card" style="margin-bottom: 15px;">
+            <h4 style="color: #00e5ff; margin-top: 0;">📷 Handwritten Notebook & Prescription Decoder</h4>
+            <p style="color: #b3b3b3; font-size: 0.9rem;">Snap a photo of the handwritten paper list with your phone and upload it below. The neural vision engine will decode the handwriting and output formatted rows.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        uploaded_handwriting_image = st.file_uploader("Upload Photo of Handwritten Paper", type=["jpg", "jpeg", "png"])
+        
+        if uploaded_handwriting_image is not None:
+            st.image(uploaded_handwriting_image, caption="Uploaded Handwritten Document", use_container_width=True)
             
-            cols = list(df_master.columns)
-            submit_med = st.form_submit_button("Commit to Inventory File")
-            
-            if submit_med:
-                if new_brand:
-                    new_row_data = {col: "" for col in cols}
-                    if len(cols) > 0: new_row_data[cols[0]] = new_brand
-                    if len(cols) > 1: new_row_data[cols[1]] = new_generic
-                    if len(cols) > 2: new_row_data[cols[2]] = new_category
-                    if len(cols) > 3: new_row_data[cols[3]] = new_uses
-                    
-                    new_df = pd.DataFrame([new_row_data])
-                    updated_df = pd.concat([df_master, new_df], ignore_index=True)
-                    
+            if st.button("👁️ Decode Handwriting via Vision AI"):
+                if api_key:
+                    with st.spinner("Decoding handwriting and structuring medication data..."):
+                        try:
+                            client_vision = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
+                            
+                            image_bytes = uploaded_handwriting_image.getvalue()
+                            base64_image = base64.b64encode(image_bytes).decode('utf-8')
+                            
+                            vision_response = client_vision.chat.completions.create(
+                                model="llama-3.2-11b-vision-preview",
+                                messages=[
+                                    {
+                                        "role": "user",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Read this handwritten list of medications carefully. Extract all brand names, active generic salts, categories, and uses. Return the data strictly as a clean CSV format with these exact headers: Brand Name, Active Salt / Generic Composition, Therapeutic Category, Primary Uses & Indications"
+                                            },
+                                            {
+                                                "type": "image_url",
+                                                "image_url": {
+                                                    "url": f"data:image/jpeg;base64,{base64_image}"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ],
+                                stream=False
+                            )
+                            
+                            decoded_csv = vision_response.choices[0].message.content
+                            st.code(decoded_csv, language="csv")
+                            st.success("✅ Handwriting successfully decoded! Copy these rows or paste them into the Live Browser Grid to save.")
+                        except Exception as e:
+                            st.error(f"Vision Decoding Error: {e}")
+                else:
+                    st.error("API Key missing.")
+
+    # --- SUB-TAB 2: AI TEXT & WHATSAPP PARSER ---
+    with sub_tab2:
+        st.markdown("""
+        <div class="hud-card" style="margin-bottom: 15px;">
+            <h4 style="color: #00e5ff; margin-top: 0;">💬 Text & WhatsApp Ingestion</h4>
+            <p style="color: #b3b3b3; font-size: 0.9rem;">Paste messy text lists or chat logs. The AI will extract the drug details automatically.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        raw_supplier_text = st.text_area("Paste text here...", height=120)
+        if st.button("🤖 Parse Text to CSV"):
+            if raw_supplier_text.strip() and api_key:
+                with st.spinner("Parsing text..."):
                     try:
+                        parsing_prompt = f"""
+                        Extract all medications from the following text and return strictly as a CSV with columns:
+                        Brand Name, Active Salt / Generic Composition, Therapeutic Category, Primary Uses & Indications
+                        
+                        Text:
+                        {raw_supplier_text}
+                        """
+                        parse_response = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key).chat.completions.create(
+                            model="llama-3.1-8b-instant",
+                            messages=[{"role": "user", "content": parsing_prompt}],
+                            stream=False
+                        )
+                        st.code(parse_response.choices[0].message.content, language="csv")
+                        st.success("✅ Parsed successfully!")
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+
+    # --- SUB-TAB 3: BULK FILE IMPORTER ---
+    with sub_tab3:
+        uploaded_bulk_file = st.file_uploader("Upload Supplier Spreadsheet (.xlsx/.csv)", type=["xlsx", "csv"])
+        if uploaded_bulk_file is not None:
+            try:
+                df_incoming = pd.read_csv(uploaded_bulk_file) if uploaded_bulk_file.name.endswith('.csv') else pd.read_excel(uploaded_bulk_file)
+                st.dataframe(df_incoming.head(5), use_container_width=True)
+                if st.button("🚀 Merge Bulk File"):
+                    if df_master is not None:
+                        combined_df = pd.concat([df_master, df_incoming], ignore_index=True).drop_duplicates()
+                        with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
+                            combined_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
+                        st.success(f"✅ Merged! Total records: {len(combined_df)}")
+                        st.cache_data.clear()
+            except Exception as e:
+                st.error(f"Error: {e}")
+
+    # --- SUB-TAB 4: LIVE BROWSER GRID ---
+    with sub_tab4:
+        if df_master is not None:
+            empty_template = pd.DataFrame(columns=df_master.columns)
+            edited_grid_df = st.data_editor(empty_template, num_rows="dynamic", use_container_width=True, height=250)
+            if st.button("💾 Commit Grid Data"):
+                valid_new_rows = edited_grid_df.dropna(how='all')
+                if not valid_new_rows.empty:
+                    updated_df = pd.concat([df_master, valid_new_rows], ignore_index=True).drop_duplicates()
+                    with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
+                        updated_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
+                    st.success(f"✅ Committed {len(valid_new_rows)} rows!")
+                    st.cache_data.clear()
+
+    # --- SUB-TAB 5: SINGLE ITEM FORM ---
+    with sub_tab5:
+        if df_master is not None:
+            with st.form("add_single_form"):
+                new_brand = st.text_input("Brand Name*")
+                new_generic = st.text_input("Generic Salt")
+                new_category = st.text_input("Category")
+                new_uses = st.text_input("Primary Uses")
+                if st.form_submit_button("Commit Single Item"):
+                    if new_brand:
+                        cols = list(df_master.columns)
+                        new_row = {col: "" for col in cols}
+                        if len(cols) > 0: new_row[cols[0]] = new_brand
+                        if len(cols) > 1: new_row[cols[1]] = new_generic
+                        if len(cols) > 2: new_row[cols[2]] = new_category
+                        if len(cols) > 3: new_row[cols[3]] = new_uses
+                        
+                        updated_df = pd.concat([df_master, pd.DataFrame([new_row])], ignore_index=True)
                         with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
                             updated_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
-                        st.success(f"✅ Successfully committed '{new_brand}' to inventory matrix!")
+                        st.success(f"✅ Committed '{new_brand}'!")
                         st.cache_data.clear()
-                    except Exception as e:
-                        st.error(f"Commit error: {e}. Make sure inventory.xlsx is closed.")
-                else:
-                    st.warning("Brand Name is required.")
-    else:
-        st.info("ℹ️ inventory.xlsx not found.")
