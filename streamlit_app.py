@@ -281,7 +281,6 @@ def perform_smart_inventory_search(df, query):
     
     matches = pd.DataFrame()
     
-    # Strategy 1: Direct exact or substring match on Brand Name or Salt
     if brand_col in df.columns:
         b_match = df[df[brand_col].astype(str).str.contains(query_clean, case=False, na=False)]
         matches = pd.concat([matches, b_match]).drop_duplicates()
@@ -298,7 +297,6 @@ def perform_smart_inventory_search(df, query):
         u_match = df[df[uses_col].astype(str).str.contains(query_clean, case=False, na=False)]
         matches = pd.concat([matches, u_match]).drop_duplicates()
 
-    # Strategy 2: Fallback token search if direct phrase yields nothing
     if matches.empty:
         ignore_words = {'find', 'medicine', 'medicines', 'in', 'stock', 'the', 'is', 'are', 'for', 'a', 'an', 'what', 'do', 'you', 'have', 'show'}
         words = [w for w in query_clean.split() if w not in ignore_words and len(w) > 1]
@@ -340,7 +338,6 @@ with tab1:
         if "messages" not in st.session_state:
             st.session_state.messages = []
 
-        # Quick Actions
         cols = st.columns([1,1,1,1,1.5])
         selected_prompt = None
         if cols[0].button("🩹 Pain"): selected_prompt = "Find pain relief medicines in stock."
@@ -392,19 +389,19 @@ with tab1:
                             total_meds_count = len(df_master) if df_master is not None else 0
                             context_data = perform_smart_inventory_search(df_master, prompt) if (df_master is not None and not uploaded_img) else "Image analyzed or general query."
 
-                            # FIXED SYSTEM INSTRUCTION: Correctly recognizes that symptom/condition searches with returned rows mean items ARE in stock.
+                            # FORCED VERTICAL BULLET FORMATTING INSTRUCTION
                             system_instruction = f"""
                             You are the precise internal pharmacy AI assistant for NA Pharma Care.
                             
                             CURRENT DATABASE STATS:
                             - Total medications registered in inventory: {total_meds_count}
                             
-                            STRICT RULES FOR ACCURACY:
+                            STRICT RULES FOR ACCURACY AND FORMATTING:
                             1. If the user asks how many medications or items are in stock, state exactly that there are {total_meds_count} total medications registered in our inventory.
-                            2. The table under "EXACT INVENTORY MATCHES" below contains the medications found in our database for the user's query (whether it is a medicine name, salt, category, or symptom like cough, pain, or fever).
-                            3. If medications are listed in the matches below, **they ARE IN STOCK in our branch**. You must list them clearly as available options. Never claim items shown in the inventory matches are out of stock.
+                            2. The table under "EXACT INVENTORY MATCHES" below contains the medications found in our database for the user's query.
+                            3. If medications are listed in the matches below, **they ARE IN STOCK in our branch**. Never claim items shown in the inventory matches are out of stock.
                             4. ONLY if the matches below explicitly state "No exact or matching medications found", you should state: "⚠️ Not currently in stock in our branch".
-                            5. Format responses cleanly with short bullet points.
+                            5. **CRITICAL FORMATTING RULE:** You must present each matching medication on its **own separate new line** using a vertical bullet point (`*`). Never bunch medications together into a single paragraph or inline list. Each item must have a line break before and after it so it reads cleanly.
                             
                             --- EXACT INVENTORY MATCHES ---
                             {context_data}
