@@ -345,4 +345,132 @@ with tab2:
                             )
                             
                             decoded_csv = vision_response.choices[0].message.content
-                            cleaned_csv_text = decoded_csv.replace("```csv", "").replace("
+                            cleaned_csv_text = decoded_csv.replace("```csv", "").replace("```", "").strip()
+                            df_temp_preview = pd.read_csv(io.StringIO(cleaned_csv_text))
+                            
+                            st.session_state['ocr_preview_df'] = df_temp_preview
+                            st.success("Extraction complete. Review entries below.")
+                        except Exception as e:
+                            st.error(f"OCR Error: {e}")
+
+        if 'ocr_preview_df' in st.session_state:
+            st.markdown("#### Review Extracted Rows")
+            final_reviewed_df = st.data_editor(st.session_state['ocr_preview_df'], num_rows="dynamic", use_container_width=True)
+            
+            if st.button("Commit Verified Rows"):
+                if df_master is not None:
+                    valid_rows = final_reviewed_df.dropna(how='all')
+                    if 'Brand Name' in valid_rows.columns:
+                        valid_rows['Brand Name'] = valid_rows['Brand Name'].astype(str).str.strip().str.title()
+                    
+                    combined_df = pd.concat([df_master, valid_rows], ignore_index=True).drop_duplicates(subset=['Brand Name'] if 'Brand Name' in valid_rows.columns else None)
+                    
+                    try:
+                        with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
+                            combined_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
+                        st.success(f"Successfully committed {len(valid_rows)} records.")
+                        st.cache_data.clear()
+                        del st.session_state['ocr_preview_df']
+                    except PermissionError:
+                        st.error("File locked. Please close 'inventory.xlsx' in Microsoft Excel and try again.")
+                    except Exception as e:
+                        st.error(f"Commit error: {e}")
+
+    # --- SUB-TAB 2: AI TEXT & WHATSAPP PARSER ---
+    with sub_tab2:
+        st.markdown("""
+        <div class="hud-card" style="margin-bottom: 15px;">
+            <h4 style="color: #ffffff; margin-top: 0; font-size: 1rem;">Text Log Parser</h4>
+            <p style="color: #94a3b8; font-size: 0.85rem;">Paste supplier lists or chat messages to parse items into structured format.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        raw_supplier_text = st.text_area("Paste raw text here...", height=120)
+        if st.button("Parse Text"):
+            if raw_supplier_text.strip() and api_key:
+                with st.spinner("Parsing text..."):
+                    try:
+                        parsing_prompt = f"""
+                        Extract all medications and return strictly as CSV with columns:
+                        Brand Name, Active Salt / Generic Composition, Therapeutic Category, Primary Uses & Indications
+                        
+                        Text:
+                        {raw_supplier_text}
+                        """
+                        parse_response = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key).chat.completions.create(
+                            model="llama-3.1-8b-instant",
+                            messages=[{"role": "user", "content": parsing_prompt}],
+                            stream=False
+                        )
+                        st.code(parse_response.choices[0].message.content, language="csv")
+                        st.success("Parsed successfully.")
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+
+    # --- SUB-TAB 3: BULK FILE IMPORTER ---
+    with sub_tab3:
+        uploaded_bulk_file = st.file_uploader("Upload File (.xlsx or .csv)", type=["xlsx", "csv"])
+        if uploaded_bulk_file is not None:
+            try:
+                df_incoming = pd.read_csv(uploaded_bulk_file) if uploaded_bulk_file.name.endswith('.csv') else pd.read_excel(uploaded_bulk_file)
+                st.dataframe(df_incoming.head(5), use_container_width=True)
+                if st.button("Merge Spreadsheet"):
+                    if df_master is not None:
+                        combined_df = pd.concat([df_master, df_incoming], ignore_index=True).drop_duplicates()
+                        with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
+                            combined_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
+                        st.success(f"Merged successfully. Total records: {len(combined_df)}")
+                        st.cache_data.clear()
+            except PermissionError:
+                st.error("File locked. Please close 'inventory.xlsx' in Microsoft Excel.")
+            except Exception as e:
+                st.error(f"Error: {e}")
+
+    # --- SUB-TAB 4: LIVE BROWSER GRID ---
+    with sub_tab4:
+        if df_master is not None:
+            empty_template = pd.DataFrame(columns=df_master.columns)
+            edited_grid_df = st.data_editor(empty_template, num_rows="dynamic", use_container_width=True, height=250)
+            if st.button("Commit Grid Rows"):
+                valid_new_rows = edited_grid_df.dropna(how='all')
+                if not valid_new_rows.empty:
+                    updated_df = pd.concat([df_master, valid_new_rows], ignore_index=True).drop_duplicates()
+                    try:
+                        with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
+                            updated_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
+                        st.success(f"Committed {len(valid_new_rows)} rows.")
+                        st.cache_data.clear()
+                    except PermissionError:
+                        st.error("File locked. Please close 'inventory.xlsx' in Microsoft Excel.")
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+
+    # --- SUB-TAB 5: SINGLE ITEM FORM ---
+    with sub_tab5:
+        if df_master is not None:
+            with st.form("add_single_form"):
+                new_brand = st.text_input("Brand Name*")
+                new_generic = st.text_input("Generic Salt")
+                new_category = st.text_input("Category")
+                new_uses = st.text_input("Primary Uses")
+                if st.form_submit_button("Save Item"):
+                    if new_brand:
+                        cols = list(df_master.columns)
+                        new_row = {col: "" for col in cols}
+                        if len(cols) > 0: new_row[cols[0]] = new_brand.strip().title()
+                        if len(cols) > 1: new_row[cols[1]] = new_generic
+                        if len(cols) > 2: new_row[cols[2]] = new_category
+                        if len(cols) > 3: new_row[cols[3]] = new_uses
+                        
+                        updated_df = pd.concat([df_master, pd.DataFrame([new_row])], ignore_index=True)
+                        try:
+                            with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
+                                updated_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
+                            st.success(f"Committed '{new_brand}'.")
+                            st.cache_data.clear()
+                        except PermissionError:
+                            st.error("File locked. Please close 'inventory.xlsx' in Microsoft Excel.")
+                        except Exception as e:
+                            st.error(f"Error: {e}")
+                    else:
+                        st.warning("Brand Name is required.")
