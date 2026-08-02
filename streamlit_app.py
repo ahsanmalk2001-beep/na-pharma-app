@@ -1,8 +1,9 @@
+import io
+import os
+import base64
 import streamlit as st
 import pandas as pd
 from openai import OpenAI
-import base64
-import os
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
@@ -406,12 +407,12 @@ with tab2:
         "📝 Single Item Form"
     ])
     
-    # --- SUB-TAB 1: HANDWRITTEN PAPER SCANNER (VISION AI) ---
+    # --- SUB-TAB 1: HANDWRITTEN PAPER SCANNER (VISION AI + INTERACTIVE REVIEW) ---
     with sub_tab1:
         st.markdown("""
         <div class="hud-card" style="margin-bottom: 15px;">
             <h4 style="color: #00e5ff; margin-top: 0;">📷 Handwritten Notebook & Prescription Decoder</h4>
-            <p style="color: #b3b3b3; font-size: 0.9rem;">Snap a photo of the handwritten paper list with your phone and upload it below. The neural vision engine will decode the handwriting and output formatted rows.</p>
+            <p style="color: #b3b3b3; font-size: 0.9rem;">Snap a photo of the handwritten paper list with your phone and upload it below. Review and correct any AI typos before saving.</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -425,7 +426,6 @@ with tab2:
                     with st.spinner("Decoding handwriting and structuring medication data..."):
                         try:
                             client_vision = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
-                            
                             image_bytes = uploaded_handwriting_image.getvalue()
                             base64_image = base64.b64encode(image_bytes).decode('utf-8')
                             
@@ -452,12 +452,38 @@ with tab2:
                             )
                             
                             decoded_csv = vision_response.choices[0].message.content
-                            st.code(decoded_csv, language="csv")
-                            st.success("✅ Handwriting successfully decoded! Copy these rows or paste them into the Live Browser Grid to save.")
+                            cleaned_csv_text = decoded_csv.replace("```csv", "").replace("```", "").strip()
+                            df_temp_preview = pd.read_csv(io.StringIO(cleaned_csv_text))
+                            
+                            st.session_state['ocr_preview_df'] = df_temp_preview
+                            st.success("✅ Handwriting decoded successfully! Review and edit rows below before committing.")
                         except Exception as e:
                             st.error(f"Vision Decoding Error: {e}")
                 else:
                     st.error("API Key missing.")
+
+        if 'ocr_preview_df' in st.session_state:
+            st.markdown("#### ✏️ Review & Correct Decoded Items")
+            final_reviewed_df = st.data_editor(st.session_state['ocr_preview_df'], num_rows="dynamic", use_container_width=True)
+            
+            if st.button("💾 Commit Verified OCR Rows to Inventory"):
+                if df_master is not None:
+                    valid_rows = final_reviewed_df.dropna(how='all')
+                    if 'Brand Name' in valid_rows.columns:
+                        valid_rows['Brand Name'] = valid_rows['Brand Name'].astype(str).str.strip().str.title()
+                    
+                    combined_df = pd.concat([df_master, valid_rows], ignore_index=True).drop_duplicates(subset=['Brand Name'] if 'Brand Name' in valid_rows.columns else None)
+                    
+                    try:
+                        with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
+                            combined_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
+                        st.success(f"✅ Successfully committed {len(valid_rows)} items safely!")
+                        st.cache_data.clear()
+                        del st.session_state['ocr_preview_df']
+                    except PermissionError:
+                        st.error("⚠️ File-Lock Error: Please close 'inventory.xlsx' in Microsoft Excel on your computer, then click commit again.")
+                    except Exception as e:
+                        st.error(f"Commit error: {e}")
 
     # --- SUB-TAB 2: AI TEXT & WHATSAPP PARSER ---
     with sub_tab2:
@@ -504,6 +530,8 @@ with tab2:
                             combined_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
                         st.success(f"✅ Merged! Total records: {len(combined_df)}")
                         st.cache_data.clear()
+            except PermissionError:
+                st.error("⚠️ File-Lock Error: Please close 'inventory.xlsx' in Microsoft Excel on your computer.")
             except Exception as e:
                 st.error(f"Error: {e}")
 
@@ -516,10 +544,15 @@ with tab2:
                 valid_new_rows = edited_grid_df.dropna(how='all')
                 if not valid_new_rows.empty:
                     updated_df = pd.concat([df_master, valid_new_rows], ignore_index=True).drop_duplicates()
-                    with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
-                        updated_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
-                    st.success(f"✅ Committed {len(valid_new_rows)} rows!")
-                    st.cache_data.clear()
+                    try:
+                        with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
+                            updated_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
+                        st.success(f"✅ Committed {len(valid_new_rows)} rows!")
+                        st.cache_data.clear()
+                    except PermissionError:
+                        st.error("⚠️ File-Lock Error: Please close 'inventory.xlsx' in Microsoft Excel on your computer.")
+                    except Exception as e:
+                        st.error(f"Error: {e}")
 
     # --- SUB-TAB 5: SINGLE ITEM FORM ---
     with sub_tab5:
@@ -533,13 +566,20 @@ with tab2:
                     if new_brand:
                         cols = list(df_master.columns)
                         new_row = {col: "" for col in cols}
-                        if len(cols) > 0: new_row[cols[0]] = new_brand
+                        if len(cols) > 0: new_row[cols[0]] = new_brand.strip().title()
                         if len(cols) > 1: new_row[cols[1]] = new_generic
                         if len(cols) > 2: new_row[cols[2]] = new_category
                         if len(cols) > 3: new_row[cols[3]] = new_uses
                         
                         updated_df = pd.concat([df_master, pd.DataFrame([new_row])], ignore_index=True)
-                        with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
-                            updated_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
-                        st.success(f"✅ Committed '{new_brand}'!")
-                        st.cache_data.clear()
+                        try:
+                            with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
+                                updated_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
+                            st.success(f"✅ Committed '{new_brand}'!")
+                            st.cache_data.clear()
+                        except PermissionError:
+                            st.error("⚠️ File-Lock Error: Please close 'inventory.xlsx' in Microsoft Excel on your computer.")
+                        except Exception as e:
+                            st.error(f"Error: {e}")
+                    else:
+                        st.warning("Brand Name is required.")
