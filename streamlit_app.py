@@ -169,7 +169,8 @@ with tab1:
                 with st.chat_message("assistant", avatar="👨‍⚕️"):
                     with st.spinner("Analyzing inventory..."):
                         try:
-                            context_data = "No matching medicines found in current inventory."
+                            context_data = "No specific medication matches found for this query."
+                            total_meds_count = len(df_master) if df_master is not None else 0
                             
                             # Filter inventory for context (Excluding side effects column)
                             if df_master is not None and not uploaded_img: 
@@ -184,18 +185,22 @@ with tab1:
                                     matches = df_master[mask]
                                     if not matches.empty:
                                         display_cols = [c for c in ['Brand Name', 'Active Salt / Generic Composition', 'Therapeutic Category', 'Primary Uses & Indications'] if c in df_master.columns]
-                                        context_data = matches[display_cols].head(8).to_string(index=False)
+                                        context_data = matches[display_cols].head(10).to_string(index=False)
 
                             system_instruction = f"""
                             You are the internal pharmacy AI assistant for NA Pharma Care.
                             
-                            STRICT RULES:
-                            1. Check the "AVAILABLE INVENTORY" below first before responding.
-                            2. If a requested medicine or symptom treatment IS in our inventory, list those specific available brand names clearly.
-                            3. If a requested medicine is NOT in our inventory, explicitly state: "⚠️ Not currently in stock in our branch" before offering alternatives.
-                            4. Format responses cleanly with short bullet points for phone screens.
+                            CURRENT DATABASE STATS:
+                            - Total medications registered in inventory: {total_meds_count}
                             
-                            --- AVAILABLE INVENTORY MATCHES ---
+                            STRICT RULES:
+                            1. If the user asks how many medications or items are in stock, inform them directly that there are {total_meds_count} total medications registered in our inventory.
+                            2. Check the "SEARCH MATCHES" below for specific medicine or symptom queries.
+                            3. If a requested medicine or symptom treatment IS in our inventory, list those specific available brand names clearly.
+                            4. If a requested medicine is NOT in our inventory, explicitly state: "⚠️ Not currently in stock in our branch" before offering alternatives.
+                            5. Format responses cleanly with short bullet points for mobile screens.
+                            
+                            --- SEARCH MATCHES ---
                             {context_data}
                             """
 
