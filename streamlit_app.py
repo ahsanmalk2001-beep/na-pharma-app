@@ -392,6 +392,7 @@ with tab1:
                             total_meds_count = len(df_master) if df_master is not None else 0
                             context_data = perform_smart_inventory_search(df_master, prompt) if (df_master is not None and not uploaded_img) else "Image analyzed or general query."
 
+                            # FIXED SYSTEM INSTRUCTION: Correctly recognizes that symptom/condition searches with returned rows mean items ARE in stock.
                             system_instruction = f"""
                             You are the precise internal pharmacy AI assistant for NA Pharma Care.
                             
@@ -400,9 +401,9 @@ with tab1:
                             
                             STRICT RULES FOR ACCURACY:
                             1. If the user asks how many medications or items are in stock, state exactly that there are {total_meds_count} total medications registered in our inventory.
-                            2. Use the "EXACT INVENTORY MATCHES" below as the absolute source of truth for stock availability.
-                            3. If a requested medicine or symptom treatment appears in the inventory matches, list the exact available Brand Names and salts clearly.
-                            4. If a requested medicine or item is NOT found in the inventory matches, explicitly state: "⚠️ Not currently in stock in our branch" before offering alternatives. Never hallucinate stock availability.
+                            2. The table under "EXACT INVENTORY MATCHES" below contains the medications found in our database for the user's query (whether it is a medicine name, salt, category, or symptom like cough, pain, or fever).
+                            3. If medications are listed in the matches below, **they ARE IN STOCK in our branch**. You must list them clearly as available options. Never claim items shown in the inventory matches are out of stock.
+                            4. ONLY if the matches below explicitly state "No exact or matching medications found", you should state: "⚠️ Not currently in stock in our branch".
                             5. Format responses cleanly with short bullet points.
                             
                             --- EXACT INVENTORY MATCHES ---
@@ -438,7 +439,6 @@ with tab2:
         show_full_details = st.checkbox("Show full technical details", value=False)
 
         if search_term:
-            # Using enhanced search for direct lookup table as well
             brand_col = 'Brand Name' if 'Brand Name' in df_master.columns else df_master.columns[0]
             salt_col = 'Active Salt / Generic Composition' if 'Active Salt / Generic Composition' in df_master.columns else None
             
