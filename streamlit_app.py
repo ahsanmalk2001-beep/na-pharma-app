@@ -12,21 +12,22 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. LIVE 3D FALLING MEDICAL OBJECTS (PHYSICS RAIN EFFECT) ---
+# --- 2. LIVE DYNAMIC MEDICAL DEBRIS DROP & PILE-UP EFFECT ---
 st.markdown("""
-<div class="medical-rain">
-    <span style="--i:11;">💊</span>
-    <span style="--i:12;">💉</span>
-    <span style="--i:15;">🩺</span>
-    <span style="--i:18;">💊</span>
-    <span style="--i:13;">🩹</span>
-    <span style="--i:16;">🧬</span>
-    <span style="--i:19;">💉</span>
-    <span style="--i:14;">💊</span>
-    <span style="--i:17;">🩺</span>
-    <span style="--i:10;">🩹</span>
-    <span style="--i:11;">💊</span>
-    <span style="--i:15;">💉</span>
+<div class="debris-container">
+    <span style="--x: 5%; --delay: 0.1s; --rot: 45deg;">💊</span>
+    <span style="--x: 12%; --delay: 0.4s; --rot: -30deg;">💉</span>
+    <span style="--x: 20%; --delay: 0.2s; --rot: 90deg;">🩺</span>
+    <span style="--x: 28%; --delay: 0.6s; --rot: -120deg;">🩹</span>
+    <span style="--x: 35%; --delay: 0.3s; --rot: 15deg;">🧬</span>
+    <span style="--x: 42%; --delay: 0.7s; --rot: -60deg;">💊</span>
+    <span style="--x: 50%; --delay: 0.15s; --rot: 180deg;">💉</span>
+    <span style="--x: 58%; --delay: 0.5s; --rot: -15deg;">🩺</span>
+    <span style="--x: 65%; --delay: 0.35s; --rot: 110deg;">🩹</span>
+    <span style="--x: 72%; --delay: 0.8s; --rot: -90deg;">💊</span>
+    <span style="--x: 80%; --delay: 0.25s; --rot: 30deg;">🧬</span>
+    <span style="--x: 88%; --delay: 0.55s; --rot: -45deg;">💉</span>
+    <span style="--x: 95%; --delay: 0.05s; --rot: 75deg;">🩺</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -46,8 +47,8 @@ footer {visibility: hidden !important; display: none !important;}
     color: #ffffff !important;
 }
 
-/* --- DYNAMIC BACKGROUND & FALLING MEDICAL RAIN ANIMATION --- */
-.medical-rain {
+/* --- DYNAMIC BACKGROUND & REALISTIC THROW / PILE EFFECT --- */
+.debris-container {
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
     background: linear-gradient(135deg, #050511, #120826, #0a192f, #000c18);
@@ -64,46 +65,50 @@ footer {visibility: hidden !important; display: none !important;}
     100% { background-position: 0% 50%; }
 }
 
-.medical-rain span {
+.debris-container span {
     position: absolute;
     display: block;
-    list-style: none;
-    font-size: 2rem;
-    animation: fall linear infinite;
-    bottom: 110vh;
-    opacity: 0.8;
+    font-size: 2.2rem;
+    left: var(--x);
+    top: -10vh;
+    opacity: 0;
+    animation: throwAndPile 4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    animation-delay: var(--delay);
     user-select: none;
     z-index: -998;
 }
 
-/* Individual falling items configuration for random physics feel */
-.medical-rain span:nth-child(1)  { left: 5%;  animation-duration: 7s;  animation-delay: 0s;  font-size: 2.2rem; }
-.medical-rain span:nth-child(2)  { left: 15%; animation-duration: 5s;  animation-delay: 2s;  font-size: 1.8rem; }
-.medical-rain span:nth-child(3)  { left: 25%; animation-duration: 8s;  animation-delay: 1s;  font-size: 2.5rem; }
-.medical-rain span:nth-child(4)  { left: 35%; animation-duration: 6s;  animation-delay: 4s;  font-size: 2.0rem; }
-.medical-rain span:nth-child(5)  { left: 45%; animation-duration: 9s;  animation-delay: 0.5s;font-size: 2.8rem; }
-.medical-rain span:nth-child(6)  { left: 55%; animation-duration: 7s;  animation-delay: 3s;  font-size: 1.9rem; }
-.medical-rain span:nth-child(7)  { left: 65%; animation-duration: 5s;  animation-delay: 1.5s;font-size: 2.3rem; }
-.medical-rain span:nth-child(8)  { left: 75%; animation-duration: 8s;  animation-delay: 2.5s;font-size: 2.6rem; }
-.medical-rain span:nth-child(9)  { left: 85%; animation-duration: 6s;  animation-delay: 0.8s;font-size: 2.1rem; }
-.medical-rain span:nth-child(10) { left: 92%; animation-duration: 7.5s;animation-delay: 3.5s;font-size: 2.4rem; }
-.medical-rain span:nth-child(11) { left: 50%; animation-duration: 6.5s;animation-delay: 1.8s;font-size: 2.0rem; }
-.medical-rain span:nth-child(12) { left: 80%; animation-duration: 8.5s;animation-delay: 4.2s;font-size: 2.7rem; }
-
-@keyframes fall {
+@keyframes throwAndPile {
     0% {
-        transform: translateY(0vh) rotate(0deg) scale(1);
+        top: -10vh;
         opacity: 0;
+        transform: translateY(0) rotate(0deg) scale(1.2);
     }
     10% {
-        opacity: 0.9;
+        opacity: 1;
     }
-    90% {
-        opacity: 0.9;
+    /* Fast gravity drop ending up right at the bottom screen bounds */
+    70% {
+        top: 88vh;
+        opacity: 1;
+        transform: translateY(0) rotate(var(--rot)) scale(1);
+    }
+    /* Settle into a junk pile */
+    82% {
+        top: 86vh;
+        opacity: 1;
+        transform: translateY(0) rotate(calc(var(--rot) + 10deg)) scale(0.95);
+    }
+    /* Fade out / disappear cleanly after sitting as junk */
+    92% {
+        top: 86vh;
+        opacity: 0.8;
+        transform: scale(0.9);
     }
     100% {
-        transform: translateY(115vh) rotate(360deg) scale(1.1);
+        top: 86vh;
         opacity: 0;
+        transform: scale(0.5);
     }
 }
 
