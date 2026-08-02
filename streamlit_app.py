@@ -6,13 +6,13 @@ import os
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="NA Pharma Care AI - Command Center",
+    page_title="NA Pharma Care - Live Neural Terminal",
     page_icon="💊",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. 3D BACKGROUND CUBES + REALISTIC THROW & PILE ANIMATION ---
+# --- 2. ADVANCED CYBER-CLINICAL HUD & DYNAMIC ANIMATIONS ---
 st.markdown("""
 <div class="animated-bg">
     <ul class="cube-container">
@@ -26,6 +26,8 @@ st.markdown("""
     <span>🧬</span><span>💉</span><span>💊</span><span>🩺</span><span>🩹</span>
     <span>💊</span><span>💉</span><span>🩺</span><span>💊</span><span>🩹</span>
 </div>
+
+<div class="grid-overlay"></div>
 """, unsafe_allow_html=True)
 
 st.markdown("""
@@ -42,14 +44,24 @@ footer {visibility: hidden !important; display: none !important;}
     background: transparent !important;
     background-color: transparent !important;
     color: #ffffff !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* --- SUBTLE GRID OVERLAY (MAKES IT FEEL "ALIVE" & SCI-FI) --- */
+.grid-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background-image: linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: -997; pointer-events: none;
 }
 
 /* --- VIBRANT 3D BACKGROUND CUBES --- */
 .animated-bg {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: linear-gradient(135deg, #09031a, #1a0b2e, #0f1c3f, #001429);
+    background: linear-gradient(135deg, #05020c, #120724, #081128, #000c1c);
     background-size: 400% 400%;
-    animation: gradientShift 15s ease infinite;
+    animation: gradientShift 18s ease infinite;
     z-index: -999; pointer-events: none;
 }
 
@@ -64,36 +76,36 @@ footer {visibility: hidden !important; display: none !important;}
 }
 .cube-container li {
     position: absolute; list-style: none; display: block;
-    background: rgba(0, 229, 255, 0.1);
-    border: 1px solid rgba(0, 229, 255, 0.5);
-    box-shadow: 0 0 15px rgba(0, 229, 255, 0.5), inset 0 0 15px rgba(0, 229, 255, 0.3);
-    animation: float3D 20s linear infinite; bottom: -150px; border-radius: 8px;
+    background: rgba(0, 229, 255, 0.08);
+    border: 1px solid rgba(0, 229, 255, 0.4);
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.3), inset 0 0 10px rgba(0, 229, 255, 0.2);
+    animation: float3D 22s linear infinite; bottom: -150px; border-radius: 8px;
 }
 .cube-container li:nth-child(even) {
-    background: rgba(255, 0, 127, 0.1);
-    border: 1px solid rgba(255, 0, 127, 0.5);
-    box-shadow: 0 0 15px rgba(255, 0, 127, 0.5), inset 0 0 15px rgba(255, 0, 127, 0.3);
+    background: rgba(255, 0, 127, 0.08);
+    border: 1px solid rgba(255, 0, 127, 0.4);
+    box-shadow: 0 0 20px rgba(255, 0, 127, 0.3), inset 0 0 10px rgba(255, 0, 127, 0.2);
 }
 
 .cube-container li:nth-child(1) { left: 10%; width: 60px; height: 60px; animation-duration: 25s; animation-delay: 0s; }
-.cube-container li:nth-child(2) { left: 25%; width: 30px; height: 30px; animation-duration: 15s; animation-delay: 2s; }
-.cube-container li:nth-child(3) { left: 45%; width: 100px; height: 100px; animation-duration: 30s; animation-delay: 4s; }
+.cube-container li:nth-child(2) { left: 25%; width: 30px; height: 30px; animation-duration: 16s; animation-delay: 2s; }
+.cube-container li:nth-child(3) { left: 45%; width: 90px; height: 90px; animation-duration: 28s; animation-delay: 4s; }
 .cube-container li:nth-child(4) { left: 65%; width: 45px; height: 45px; animation-duration: 20s; animation-delay: 0s; }
-.cube-container li:nth-child(5) { left: 80%; width: 80px; height: 80px; animation-duration: 35s; animation-delay: 1s; }
-.cube-container li:nth-child(6) { left: 15%; width: 50px; height: 50px; animation-duration: 18s; animation-delay: 5s; }
-.cube-container li:nth-child(7) { left: 55%; width: 120px; height: 120px; animation-duration: 40s; animation-delay: 7s; }
-.cube-container li:nth-child(8) { left: 35%; width: 25px; height: 25px; animation-duration: 12s; animation-delay: 3s; }
-.cube-container li:nth-child(9) { left: 75%; width: 70px; height: 70px; animation-duration: 22s; animation-delay: 6s; }
-.cube-container li:nth-child(10) { left: 90%; width: 40px; height: 40px; animation-duration: 14s; animation-delay: 2s; }
+.cube-container li:nth-child(5) { left: 80%; width: 75px; height: 75px; animation-duration: 32s; animation-delay: 1s; }
+.cube-container li:nth-child(6) { left: 15%; width: 50px; height: 50px; animation-duration: 19s; animation-delay: 5s; }
+.cube-container li:nth-child(7) { left: 55%; width: 110px; height: 110px; animation-duration: 38s; animation-delay: 7s; }
+.cube-container li:nth-child(8) { left: 35%; width: 25px; height: 25px; animation-duration: 14s; animation-delay: 3s; }
+.cube-container li:nth-child(9) { left: 75%; width: 70px; height: 70px; animation-duration: 24s; animation-delay: 6s; }
+.cube-container li:nth-child(10) { left: 90%; width: 40px; height: 40px; animation-duration: 15s; animation-delay: 2s; }
 
 @keyframes float3D {
     0% { transform: translateY(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
+    15% { opacity: 0.8; }
+    85% { opacity: 0.8; }
     100% { transform: translateY(-120vh) rotateX(360deg) rotateY(720deg) rotateZ(360deg); opacity: 0; }
 }
 
-/* --- THROW ANIMATION --- */
+/* --- MEDICAL TOSS ANIMATION --- */
 .medical-toss {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     z-index: -998; pointer-events: none; overflow: hidden;
@@ -130,51 +142,94 @@ footer {visibility: hidden !important; display: none !important;}
     100% { transform: translateY(var(--land)) rotate(var(--rot)) scale(1); opacity: 0; }
 }
 
-/* --- GLASSMORPHISM CONTAINERS --- */
-.hud-panel {
-    background: rgba(15, 10, 30, 0.7) !important;
-    backdrop-filter: blur(16px) !important;
-    border: 1px solid rgba(0, 229, 255, 0.35) !important;
-    border-radius: 16px !important;
-    padding: 20px !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+/* --- LIVE PULSING HUD BADGE ---. */
+.live-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(0, 229, 255, 0.1);
+    border: 1px solid rgba(0, 229, 255, 0.5);
+    padding: 6px 14px; border-radius: 20px;
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+    color: #00e5ff; box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+}
+.pulse-dot {
+    width: 8px; height: 8px; background-color: #00e5ff; border-radius: 50%;
+    box-shadow: 0 0 10px #00e5ff;
+    animation: livePulse 1.5s infinite ease-in-out;
+}
+@keyframes livePulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(0, 229, 255, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 229, 255, 0); }
 }
 
-/* --- NEON BUTTONS --- */
+/* --- HUD GLASS PANELS WITH HOVER GLOW --- */
+.hud-card {
+    background: rgba(12, 8, 25, 0.75) !important;
+    backdrop-filter: blur(18px) !important;
+    border: 1px solid rgba(0, 229, 255, 0.3) !important;
+    border-radius: 16px !important;
+    padding: 22px !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7) !important;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.hud-card:hover {
+    border-color: rgba(0, 229, 255, 0.7) !important;
+    box-shadow: 0 15px 50px rgba(0, 229, 255, 0.25) !important;
+    transform: translateY(-2px);
+}
+
+/* --- NEON BUTTONS & CHIPS --- */
 .stButton button {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(0, 229, 255, 0.4) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(0, 229, 255, 0.35) !important;
     border-radius: 12px !important;
     color: #00e5ff !important;
-    font-weight: bold !important;
+    font-weight: 700 !important;
     text-transform: uppercase !important;
     letter-spacing: 1px !important;
-    transition: all 0.3s ease !important;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .stButton button:hover {
-    background: rgba(0, 229, 255, 0.25) !important;
+    background: rgba(0, 229, 255, 0.2) !important;
     border-color: #00e5ff !important;
-    box-shadow: 0 0 20px rgba(0, 229, 255, 0.8) !important;
+    box-shadow: 0 0 25px rgba(0, 229, 255, 0.8) !important;
     color: #ffffff !important;
-    transform: scale(1.04) !important;
+    transform: scale(1.03) !important;
+}
+
+/* --- SPOTLIGHT SEARCH BAR --- */
+[data-testid="stTextInput"] input {
+    background: rgba(10, 5, 22, 0.9) !important;
+    border: 1.5px solid rgba(0, 229, 255, 0.5) !important;
+    border-radius: 14px !important;
+    color: #ffffff !important;
+    font-size: 1.05rem !important;
+    padding: 14px 18px !important;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.15), inset 0 0 10px rgba(0, 229, 255, 0.05) !important;
+    transition: all 0.3s ease !important;
+}
+[data-testid="stTextInput"] input:focus {
+    border-color: #00e5ff !important;
+    box-shadow: 0 0 30px rgba(0, 229, 255, 0.5), inset 0 0 15px rgba(0, 229, 255, 0.2) !important;
 }
 
 /* --- GLOWING TITLE --- */
 .glowing-title {
-    margin: 0; font-weight: 900; font-size: 3rem !important; text-align: center;
+    margin: 0; font-weight: 900; font-size: 3.2rem !important; text-align: center;
     background: linear-gradient(90deg, #00e5ff, #ff007f, #00e5ff);
     background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    animation: neonShine 3s linear infinite;
-    text-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
+    animation: neonShine 3.5s linear infinite;
+    text-shadow: 0 0 40px rgba(0, 229, 255, 0.5);
 }
 @keyframes neonShine {
     to { background-position: 200% center; }
 }
 
+/* --- DATA TABLES --- */
 [data-testid="stDataFrame"] {
-    background: rgba(15, 10, 30, 0.6) !important;
+    background: rgba(10, 6, 20, 0.7) !important;
     backdrop-filter: blur(15px) !important;
-    border-radius: 12px !important;
+    border-radius: 14px !important;
     border: 1px solid rgba(0, 229, 255, 0.3) !important;
 }
 </style>
@@ -247,15 +302,20 @@ def perform_smart_inventory_search(df, query):
     else:
         return pd.DataFrame(), "No exact or matching medications found in current inventory records."
 
-# --- 5. HEADER ---
+# --- 5. HEADER WITH LIVE BADGE ---
 st.markdown("""
-<div style="text-align: center; padding: 10px 0 20px 0;">
+<div style="display: flex; justify-content: center; align-items: center; margin-bottom: 5px;">
+    <div class="live-badge">
+        <div class="pulse-dot"></div> Live Neural Counter Terminal • Synced
+    </div>
+</div>
+<div style="text-align: center; padding: 5px 0 20px 0;">
     <h1 class="glowing-title">NA Pharma Care</h1>
-    <p style="color: #00e5ff; font-size: 1rem; text-transform: uppercase; letter-spacing: 2px;">Brother's Ultra-Fast Counter Terminal</p>
+    <p style="color: #00e5ff; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 3px; margin-top: 5px;">Advanced Counter-Speed Intelligence Matrix</p>
 </div>
 """, unsafe_allow_html=True)
 
-# --- 6. TABS NAVIGATION (NO BILLING CLUTTER) ---
+# --- 6. TABS NAVIGATION ---
 tab1, tab2 = st.tabs(["⚡ Command Center", "➕ Add Med"])
 
 # --- TAB 1: COMMAND CENTER (UNIFIED SEARCH & AI) ---
@@ -266,7 +326,7 @@ with tab1:
         client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
         
         # One-Tap Symptom Chips
-        st.markdown("<p style='color: #00e5ff; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px;'>⚡ QUICK SYMPTOM CHIPS:</p>", unsafe_allow_html=True)
+        st.markdown("<p style='color: #00e5ff; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;'>⚡ Instant Neural Symptom Chips:</p>", unsafe_allow_html=True)
         c1, c2, c3, c4, c5, c6 = st.columns([1,1,1,1,1,1.2])
         chip_query = None
         if c1.button("🩹 Pain"): chip_query = "pain"
@@ -274,10 +334,10 @@ with tab1:
         if c3.button("🤧 Cough"): chip_query = "cough"
         if c4.button("💊 Anti"): chip_query = "antibiotic"
         if c5.button("🤢 Stomach"): chip_query = "stomach"
-        if c6.button("🧹 Clear Search"): chip_query = ""
+        if c6.button("🧹 Clear Matrix"): chip_query = ""
 
         # Spotlight Search Bar
-        search_input = st.text_input("🔍 Spotlight Search (Type exact brand, generic salt, or symptom e.g., 'cough')...", value=chip_query if chip_query is not None else "")
+        search_input = st.text_input("🔍 Spotlight Command Search (Type brand, generic salt, or symptom e.g., 'fever')...", value=chip_query if chip_query is not None else "")
         active_query = search_input.strip()
 
         if active_query:
@@ -289,17 +349,17 @@ with tab1:
             with col_left:
                 st.markdown("### 📦 Instant Inventory Matches")
                 if not df_matches.empty:
-                    st.success(f"🟢 Found {len(df_matches)} matching options in stock!")
-                    st.dataframe(df_matches, use_container_width=True, height=350)
+                    st.success(f"🟢 Found {len(df_matches)} active options in inventory matrix!")
+                    st.dataframe(df_matches, use_container_width=True, height=380)
                 else:
-                    st.warning(f"🔴 No direct matches for '{active_query}' in stock.")
+                    st.warning(f"🔴 No direct matches for '{active_query}' in active inventory.")
 
             with col_right:
-                st.markdown("### 🤖 AI Clinical Guidance")
-                with st.spinner("Analyzing counter inventory..."):
+                st.markdown("### 🤖 Neural Clinical Guidance")
+                with st.spinner("Processing live matrix query..."):
                     try:
                         system_instruction = f"""
-                        You are the expert internal pharmacy assistant for NA Pharma Care counter terminal.
+                        You are the elite internal pharmacy assistant for NA Pharma Care counter terminal.
                         
                         TOTAL INVENTORY: {total_meds_count} medications registered.
                         
@@ -320,20 +380,27 @@ with tab1:
                             ],
                             stream=False
                         )
-                        st.markdown(response.choices[0].message.content)
+                        
+                        # Wrapped inside an elite HUD card for realistic live feed look
+                        st.markdown(f"""
+                        <div class="hud-card" style="margin-top: 10px;">
+                            {response.choices[0].message.content}
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
                     except Exception as e:
-                        st.error(f"AI Error: {e}")
+                        st.error(f"Neural Error: {e}")
         else:
             st.markdown("""
-            <div class="hud-panel" style="text-align: center; padding: 40px;">
-                <h3 style="color: #00e5ff; margin-bottom: 10px;">Counter Terminal Ready</h3>
-                <p style="color: #b3b3b3;">Type any brand name, active salt, or symptom above or click a quick symptom chip to instantly query inventory and get AI guidance.</p>
+            <div class="hud-card" style="text-align: center; padding: 50px 20px; margin-top: 15px;">
+                <h3 style="color: #00e5ff; margin-bottom: 12px; font-weight: 800; letter-spacing: 1px;">TERMINAL READY • WAITING FOR INPUT</h3>
+                <p style="color: #a0aec0; font-size: 0.95rem; max-width: 600px; margin: 0 auto; line-height: 1.6;">Type any brand name, active generic salt, or symptom into the spotlight search above, or select a quick chip to query the live inventory matrix instantaneously.</p>
             </div>
             """, unsafe_allow_html=True)
 
 # --- TAB 2: ADD MEDICINE ---
 with tab2:
-    st.markdown("### ➕ Add New Medicine to Inventory")
+    st.markdown("### ➕ Register New Medicine into Matrix")
     if df_master is not None:
         with st.form("add_medicine_form"):
             new_brand = st.text_input("Brand Name / Medicine Name*")
@@ -342,7 +409,7 @@ with tab2:
             new_uses = st.text_input("Primary Uses (e.g., Headache, Fever, Pain, Cough)")
             
             cols = list(df_master.columns)
-            submit_med = st.form_submit_button("Save to Inventory File")
+            submit_med = st.form_submit_button("Commit to Inventory File")
             
             if submit_med:
                 if new_brand:
@@ -358,10 +425,10 @@ with tab2:
                     try:
                         with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
                             updated_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
-                        st.success(f"✅ Successfully added '{new_brand}' to inventory!")
+                        st.success(f"✅ Successfully committed '{new_brand}' to inventory matrix!")
                         st.cache_data.clear()
                     except Exception as e:
-                        st.error(f"Error saving file: {e}. Make sure inventory.xlsx is closed.")
+                        st.error(f"Commit error: {e}. Make sure inventory.xlsx is closed.")
                 else:
                     st.warning("Brand Name is required.")
     else:
