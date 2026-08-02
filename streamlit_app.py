@@ -124,7 +124,6 @@ footer {visibility: hidden !important; display: none !important;}
     position: absolute;
     display: block;
     font-size: 2.5rem;
-    /* Runs EXACTLY ONCE and forwards (stays hidden after fading out) */
     animation: tossAndPile 3.2s cubic-bezier(0.2, 0.8, 0.2, 1) 1 forwards;
     top: -100px;
     opacity: 0;
@@ -132,7 +131,6 @@ footer {visibility: hidden !important; display: none !important;}
     filter: drop-shadow(0 6px 12px rgba(0,0,0,0.7));
 }
 
-/* Individual scattering and natural landing heights for realistic junk heap */
 .medical-toss span:nth-child(1)  { left: 8%;  animation-delay: 0.05s; --land: 78vh; --rot: 480deg; }
 .medical-toss span:nth-child(2)  { left: 15%; animation-delay: 0.15s; --land: 81vh; --rot: 610deg; }
 .medical-toss span:nth-child(3)  { left: 22%; animation-delay: 0.08s; --land: 76vh; --rot: 390deg; }
@@ -150,38 +148,13 @@ footer {visibility: hidden !important; display: none !important;}
 .medical-toss span:nth-child(15) { left: 72%; animation-delay: 0.24s; --land: 82vh; --rot: 550deg; }
 
 @keyframes tossAndPile {
-    0% {
-        transform: translateY(0px) rotate(0deg) scale(0.5);
-        opacity: 0;
-    }
-    15% {
-        opacity: 1;
-    }
-    50% {
-        /* Slam down heavy at the bottom */
-        transform: translateY(var(--land)) rotate(var(--rot)) scale(1.15);
-        opacity: 1;
-    }
-    60% {
-        /* Natural small bounce upwards */
-        transform: translateY(calc(var(--land) - 4vh)) rotate(calc(var(--rot) + 30deg)) scale(1);
-        opacity: 1;
-    }
-    70% {
-        /* Settles back down into the heap */
-        transform: translateY(var(--land)) rotate(var(--rot)) scale(1);
-        opacity: 1;
-    }
-    88% {
-        /* Rests in the heap pile */
-        transform: translateY(var(--land)) rotate(var(--rot)) scale(1);
-        opacity: 1;
-    }
-    100% {
-        /* Fades out and disappears permanently */
-        transform: translateY(var(--land)) rotate(var(--rot)) scale(1);
-        opacity: 0;
-    }
+    0% { transform: translateY(0px) rotate(0deg) scale(0.5); opacity: 0; }
+    15% { opacity: 1; }
+    50% { transform: translateY(var(--land)) rotate(var(--rot)) scale(1.15); opacity: 1; }
+    60% { transform: translateY(calc(var(--land) - 4vh)) rotate(calc(var(--rot) + 30deg)) scale(1); opacity: 1; }
+    70% { transform: translateY(var(--land)) rotate(var(--rot)) scale(1); opacity: 1; }
+    88% { transform: translateY(var(--land)) rotate(var(--rot)) scale(1); opacity: 1; }
+    100% { transform: translateY(var(--land)) rotate(var(--rot)) scale(1); opacity: 0; }
 }
 
 /* --- GLASSMORPHISM UI PANELS --- */
@@ -294,6 +267,58 @@ def generate_cleaned_content(response):
 def encode_image(uploaded_file):
     return base64.b64encode(uploaded_file.getvalue()).decode('utf-8')
 
+def perform_smart_inventory_search(df, query):
+    """Enhanced precise search algorithm targeting Brand Name, Generic Salt, and Uses."""
+    if df is None or df.empty:
+        return "Inventory is empty or uninitialized."
+    
+    query_clean = query.lower().strip()
+    
+    brand_col = 'Brand Name' if 'Brand Name' in df.columns else df.columns[0]
+    salt_col = 'Active Salt / Generic Composition' if 'Active Salt / Generic Composition' in df.columns else None
+    category_col = 'Therapeutic Category' if 'Therapeutic Category' in df.columns else None
+    uses_col = 'Primary Uses & Indications' if 'Primary Uses & Indications' in df.columns else None
+    
+    matches = pd.DataFrame()
+    
+    # Strategy 1: Direct exact or substring match on Brand Name or Salt
+    if brand_col in df.columns:
+        b_match = df[df[brand_col].astype(str).str.contains(query_clean, case=False, na=False)]
+        matches = pd.concat([matches, b_match]).drop_duplicates()
+        
+    if salt_col and salt_col in df.columns:
+        s_match = df[df[salt_col].astype(str).str.contains(query_clean, case=False, na=False)]
+        matches = pd.concat([matches, s_match]).drop_duplicates()
+
+    if category_col and category_col in df.columns:
+        c_match = df[df[category_col].astype(str).str.contains(query_clean, case=False, na=False)]
+        matches = pd.concat([matches, c_match]).drop_duplicates()
+
+    if uses_col and uses_col in df.columns:
+        u_match = df[df[uses_col].astype(str).str.contains(query_clean, case=False, na=False)]
+        matches = pd.concat([matches, u_match]).drop_duplicates()
+
+    # Strategy 2: Fallback token search if direct phrase yields nothing
+    if matches.empty:
+        ignore_words = {'find', 'medicine', 'medicines', 'in', 'stock', 'the', 'is', 'are', 'for', 'a', 'an', 'what', 'do', 'you', 'have', 'show'}
+        words = [w for w in query_clean.split() if w not in ignore_words and len(w) > 1]
+        if not words:
+            words = query_clean.split()
+            
+        exclude_cols = ['Common Side Effects', 'Warnings & Contraindications', 'S.No', 'S. No']
+        target_cols = [c for c in df.columns if c not in exclude_cols]
+        
+        mask = pd.Series([False] * len(df))
+        for word in words:
+            mask = mask | df[target_cols].astype(str).apply(lambda x: x.str.contains(word, case=False, na=False)).any(axis=1)
+        matches = df[mask]
+        
+    if not matches.empty:
+        display_cols = [c for c in ['Brand Name', 'Active Salt / Generic Composition', 'Therapeutic Category', 'Primary Uses & Indications'] if c in df.columns]
+        return matches[display_cols].head(15).to_string(index=False)
+    else:
+        return "No exact or matching medications found in current inventory records."
+
 # --- 5. HEADER ---
 st.markdown("""
 <div style="text-align: center; padding: 20px 0 40px 0;">
@@ -338,7 +363,7 @@ with tab1:
                     else:
                         st.markdown(message["content"])
 
-        user_input = st.chat_input("Ask AI, search symptoms, or analyze image...")
+        user_input = st.chat_input("Ask AI, search exact medicine or symptom...")
         prompt = selected_prompt or user_input
 
         if prompt:
@@ -362,39 +387,25 @@ with tab1:
                         st.image(uploaded_img, width=150)
 
                 with st.chat_message("assistant", avatar="👨‍⚕️"):
-                    with st.spinner("Analyzing inventory..."):
+                    with st.spinner("Searching enhanced inventory records..."):
                         try:
-                            context_data = "No specific medication matches found for this query."
                             total_meds_count = len(df_master) if df_master is not None else 0
-                            
-                            if df_master is not None and not uploaded_img: 
-                                search_words = [w for w in prompt.lower().split() if len(w) > 3]
-                                exclude_cols = ['Common Side Effects', 'Warnings & Contraindications', 'S.No', 'S. No']
-                                target_cols = [c for c in df_master.columns if c not in exclude_cols]
-                                
-                                if search_words:
-                                    mask = pd.Series([False] * len(df_master))
-                                    for word in search_words:
-                                        mask = mask | df_master[target_cols].astype(str).apply(lambda x: x.str.contains(word, case=False, na=False)).any(axis=1)
-                                    matches = df_master[mask]
-                                    if not matches.empty:
-                                        display_cols = [c for c in ['Brand Name', 'Active Salt / Generic Composition', 'Therapeutic Category', 'Primary Uses & Indications'] if c in df_master.columns]
-                                        context_data = matches[display_cols].head(10).to_string(index=False)
+                            context_data = perform_smart_inventory_search(df_master, prompt) if (df_master is not None and not uploaded_img) else "Image analyzed or general query."
 
                             system_instruction = f"""
-                            You are the internal pharmacy AI assistant for NA Pharma Care.
+                            You are the precise internal pharmacy AI assistant for NA Pharma Care.
                             
                             CURRENT DATABASE STATS:
                             - Total medications registered in inventory: {total_meds_count}
                             
-                            STRICT RULES:
-                            1. If the user asks how many medications or items are in stock, inform them directly that there are {total_meds_count} total medications registered in our inventory.
-                            2. Check the "SEARCH MATCHES" below for specific medicine or symptom queries.
-                            3. If a requested medicine or symptom treatment IS in our inventory, list those specific available brand names clearly.
-                            4. If a requested medicine is NOT in our inventory, explicitly state: "⚠️ Not currently in stock in our branch" before offering alternatives.
+                            STRICT RULES FOR ACCURACY:
+                            1. If the user asks how many medications or items are in stock, state exactly that there are {total_meds_count} total medications registered in our inventory.
+                            2. Use the "EXACT INVENTORY MATCHES" below as the absolute source of truth for stock availability.
+                            3. If a requested medicine or symptom treatment appears in the inventory matches, list the exact available Brand Names and salts clearly.
+                            4. If a requested medicine or item is NOT found in the inventory matches, explicitly state: "⚠️ Not currently in stock in our branch" before offering alternatives. Never hallucinate stock availability.
                             5. Format responses cleanly with short bullet points.
                             
-                            --- SEARCH MATCHES ---
+                            --- EXACT INVENTORY MATCHES ---
                             {context_data}
                             """
 
@@ -416,33 +427,47 @@ with tab1:
 
 # --- TAB 2: DIRECT MEDICINE DATABASE LOOKUP ---
 with tab2:
-    st.markdown("### 📦 Direct Medicine Lookup")
+    st.markdown("### 📦 Enhanced Direct Medicine Lookup")
     
     if df_master is not None:
-        search_term = st.text_input("🔍 Search symptom, category, or medicine...", "")
+        search_term = st.text_input("🔍 Type exact brand name, active salt, or use...", "")
         
         essential_cols = [c for c in ['Brand Name', 'Active Salt / Generic Composition', 'Therapeutic Category', 'Primary Uses & Indications'] if c in df_master.columns]
         display_cols = essential_cols if essential_cols else df_master.columns[:4]
-        exclude_from_search = ['Common Side Effects', 'Warnings & Contraindications', 'S.No', 'S. No']
-        search_target_cols = [c for c in df_master.columns if c not in exclude_from_search]
-
+        
         show_full_details = st.checkbox("Show full technical details", value=False)
 
         if search_term:
-            mask = df_master[search_target_cols].astype(str).apply(
-                lambda x: x.str.contains(search_term, case=False, na=False)
-            ).any(axis=1)
+            # Using enhanced search for direct lookup table as well
+            brand_col = 'Brand Name' if 'Brand Name' in df_master.columns else df_master.columns[0]
+            salt_col = 'Active Salt / Generic Composition' if 'Active Salt / Generic Composition' in df_master.columns else None
             
-            filtered_df = df_master[mask]
+            q_clean = search_term.lower().strip()
+            filtered_df = pd.DataFrame()
+            
+            if brand_col in df_master.columns:
+                b_match = df_master[df_master[brand_col].astype(str).str.contains(q_clean, case=False, na=False)]
+                filtered_df = pd.concat([filtered_df, b_match]).drop_duplicates()
+            if salt_col and salt_col in df_master.columns:
+                s_match = df_master[df_master[salt_col].astype(str).str.contains(q_clean, case=False, na=False)]
+                filtered_df = pd.concat([filtered_df, s_match]).drop_duplicates()
+                
+            if filtered_df.empty:
+                exclude_from_search = ['Common Side Effects', 'Warnings & Contraindications', 'S.No', 'S. No']
+                search_target_cols = [c for c in df_master.columns if c not in exclude_from_search]
+                mask = df_master[search_target_cols].astype(str).apply(
+                    lambda x: x.str.contains(q_clean, case=False, na=False)
+                ).any(axis=1)
+                filtered_df = df_master[mask]
             
             if not filtered_df.empty:
-                st.success(f"Found {len(filtered_df)} direct matching medications:")
+                st.success(f"Found {len(filtered_df)} exact matching medications in inventory:")
                 if show_full_details:
                     st.dataframe(filtered_df, use_container_width=True)
                 else:
                     st.dataframe(filtered_df[display_cols], use_container_width=True)
             else:
-                st.warning(f"No medications found directly treating or matching '{search_term}'.")
+                st.warning(f"No medications found matching '{search_term}' in inventory.")
         else:
             if show_full_details:
                 st.dataframe(df_master, use_container_width=True)
