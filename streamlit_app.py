@@ -4,7 +4,7 @@ from openai import OpenAI
 import base64
 import os
 
-# --- 1. PAGE CONFIGURATION & MOBILE CSS ---
+# --- 1. PAGE CONFIGURATION & ANIMATED CSS ---
 st.set_page_config(
     page_title="NA Pharma Care AI",
     page_icon="💊",
@@ -14,30 +14,55 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-/* --- HIDE STREAMLIT BRANDING & CLOUD BADGES --- */
+/* --- HIDE STREAMLIT BRANDING --- */
 #MainMenu {visibility: hidden !important;}
 header {visibility: hidden !important;}
 footer {visibility: hidden !important; display: none !important;}
 .stDeployButton {display: none !important;}
-[data-testid="stStatusWidget"] {visibility: hidden !important;}
 [data-testid="stToolbar"] {display: none !important;}
 [data-testid="stDecoration"] {display: none !important;}
 
-.viewerBadge_container__1QSob,
-div[class*="viewerBadge"],
-div[class*="styles_viewerBadge"],
-a[href*="streamlit.cloud"] {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
+/* --- ANIMATED DYNAMIC BACKGROUND --- */
+html, body, [data-testid="stAppViewContainer"], .stApp {
+    background: linear-gradient(-45deg, #020617, #0f172a, #1e293b, #09090b) !important;
+    background-size: 400% 400% !important;
+    animation: gradientBG 15s ease infinite !important;
+    color: #f8fafc !important;
+    overflow-x: hidden !important;
 }
 
-/* Force Dark Background to Prevent White Flash */
-html, body, [data-testid="stAppViewContainer"], .stApp {
-    background-color: #020617 !important;
-    background: radial-gradient(circle at top left, #1e293b, #0f172a, #020617) !important;
-    color: #f8fafc !important;
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* --- FLOATING BACKGROUND ORBS (ALIVE FEEL) --- */
+.stApp::before {
+    content: '';
+    position: fixed;
+    width: 300px; height: 300px;
+    top: 15%; left: 10%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(16,185,129,0.15) 0%, rgba(0,0,0,0) 70%);
+    animation: floatOrb 8s infinite ease-in-out alternate;
+    z-index: -1;
+}
+
+.stApp::after {
+    content: '';
+    position: fixed;
+    width: 400px; height: 400px;
+    bottom: 10%; right: 15%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(0,0,0,0) 70%);
+    animation: floatOrb 12s infinite ease-in-out alternate-reverse;
+    z-index: -1;
+}
+
+@keyframes floatOrb {
+    0% { transform: translateY(0px) scale(1); }
+    100% { transform: translateY(-40px) scale(1.1); }
 }
 
 div[data-testid="stAppViewBlockContainer"] {
@@ -45,26 +70,63 @@ div[data-testid="stAppViewBlockContainer"] {
     max-width: 100% !important;
 }
 
-/* Chat Bubbles & Mobile Text Formatting */
+/* --- GLASSMORPHISM CHAT BUBBLES --- */
 [data-testid="stChatMessageContent"] {
-    background: linear-gradient(145deg, rgba(30, 41, 59, 0.75), rgba(15, 23, 42, 0.9)) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 12px !important;
+    background: rgba(30, 41, 59, 0.4) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 16px !important;
     padding: 12px 16px !important; 
-    color: #f8fafc !important;
-    word-wrap: break-word !important; 
-    overflow-wrap: break-word !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease !important;
 }
 
-[data-testid="stChatMessageContent"] div p {
-    font-size: 15px !important; 
-    line-height: 1.5 !important;
-    margin-bottom: 6px !important;
+/* Hover Effect for Chat Bubbles */
+[data-testid="stChatMessageContent"]:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 12px 40px 0 rgba(16, 185, 129, 0.2) !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
 }
 
+/* --- ANIMATED BUTTONS --- */
+.stButton button {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    backdrop-filter: blur(5px) !important;
+    transition: all 0.3s ease-in-out !important;
+    overflow: hidden;
+    position: relative;
+}
+
+.stButton button:hover {
+    transform: scale(1.05) translateY(-2px) !important;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4), 0 0 30px rgba(16, 185, 129, 0.2) !important;
+    border-color: rgba(59, 130, 246, 0.8) !important;
+    color: #fff !important;
+}
+
+/* --- GLOWING HEADER TEXT --- */
+.animated-title {
+    margin:0; 
+    font-weight: 800; 
+    background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6, #10b981);
+    background-size: 300% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textShine 5s linear infinite;
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+}
+
+@keyframes textShine {
+    to { background-position: 300% center; }
+}
+
+/* Mobile Adjustments */
 @media (max-width: 768px) {
     [data-testid="stChatMessageContent"] { max-width: 95% !important; }
-    h1 { font-size: 1.8rem !important; }
+    .animated-title { font-size: 1.8rem !important; }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -99,7 +161,7 @@ def encode_image(uploaded_file):
 # --- 4. HEADER ---
 st.markdown("""
 <div style="text-align: center; padding: 10px 0;">
-    <h1 style="margin:0; font-weight: 700; background: linear-gradient(90deg, #10b981, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">💊 NA Pharma Care AI</h1>
+    <h1 class="animated-title">💊 NA Pharma Care AI</h1>
     <p style="color: #94a3b8; font-size: 0.9rem;">Smart Internal Pharmacy Assistant</p>
 </div>
 """, unsafe_allow_html=True)
