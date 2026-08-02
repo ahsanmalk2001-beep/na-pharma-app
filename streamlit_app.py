@@ -76,30 +76,6 @@ footer {visibility: hidden !important; display: none !important;}
     box-shadow: 0 12px 40px rgba(255, 30, 77, 0.15) !important;
 }
 
-/* --- FLOATING SHARP HERO OBJECT STYLE --- */
-.hero-showcase-container {
-    background: linear-gradient(135deg, rgba(22, 4, 8, 0.9) 0%, rgba(8, 2, 4, 0.95) 100%);
-    border: 1px solid rgba(255, 30, 77, 0.3);
-    border-radius: 12px;
-    padding: 35px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
-    margin-bottom: 25px;
-}
-.floating-object {
-    width: 100%;
-    max-height: 280px;
-    object-fit: contain;
-    filter: drop-shadow(0 25px 25px rgba(255, 30, 77, 0.35));
-    animation: floatEffect 4s ease-in-out infinite;
-}
-@keyframes floatEffect {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0px); }
-}
-
 /* --- STRIKING CRIMSON BUTTONS --- */
 .stButton button {
     background: #0f0407 !important;
@@ -239,25 +215,6 @@ tab1, tab2 = st.tabs(["⚡ Command Center", "➕ Inventory Ingestion Hub"])
 
 # --- TAB 1: COMMAND CENTER ---
 with tab1:
-    # --- SHARP FLOATING HERO OBJECT SHOWCASE SECTION ---
-    st.markdown("""
-    <div class="hero-showcase-container">
-        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px;">
-            <div style="flex: 1; min-width: 280px;">
-                <span style="color: #ff1e4d; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">Featured Asset Showcase</span>
-                <h2 style="color: #ffffff; font-weight: 900; font-size: 2.2rem; margin: 8px 0 12px 0; text-transform: uppercase; letter-spacing: -0.5px;">Command Matrix <span>Online</span></h2>
-                <p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6; margin-bottom: 20px;">
-                    Experience lightning-fast inventory tracking paired with cinematic design elements. Built with sharp high-contrast framing and responsive floating components.
-                </p>
-            </div>
-            <div style="flex: 1; text-align: center; min-width: 250px;">
-                <!-- Replace the URL below with any transparent PNG of Spider-Man, Thor, or custom gear -->
-                <img src="https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop" class="floating-object" alt="Featured Hero Asset">
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
     if not api_key:
         st.error("⚠️ GROQ_API_KEY missing in Streamlit secrets.")
     else:
