@@ -12,14 +12,21 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. LIVE 3D ANIMATED BACKGROUND (GPU ACCELERATED FOR SPEED) ---
-# We inject fixed HTML elements that will act as the live 3D floating objects.
+# --- 2. LIVE 3D FALLING MEDICAL OBJECTS (PHYSICS RAIN EFFECT) ---
 st.markdown("""
-<div class="animated-bg">
-    <ul class="cube-container">
-        <li></li><li></li><li></li><li></li><li></li>
-        <li></li><li></li><li></li><li></li><li></li>
-    </ul>
+<div class="medical-rain">
+    <span style="--i:11;">💊</span>
+    <span style="--i:12;">💉</span>
+    <span style="--i:15;">🩺</span>
+    <span style="--i:18;">💊</span>
+    <span style="--i:13;">🩹</span>
+    <span style="--i:16;">🧬</span>
+    <span style="--i:19;">💉</span>
+    <span style="--i:14;">💊</span>
+    <span style="--i:17;">🩺</span>
+    <span style="--i:10;">🩹</span>
+    <span style="--i:11;">💊</span>
+    <span style="--i:15;">💉</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -30,24 +37,25 @@ st.markdown("""
 header {visibility: hidden !important; background: transparent !important;}
 footer {visibility: hidden !important; display: none !important;}
 .stDeployButton {display: none !important;}
-[data-testid="stToolbar"] {display: none !important;}
+[data-testid="stToolbar"] {visibility: hidden !important;}
 
-/* --- FORCE TRANSPARENT STREAMLIT LAYERS SO THE 3D BACKGROUND SHOWS --- */
+/* --- FORCE TRANSPARENT STREAMLIT LAYERS --- */
 .stApp, html, body, [data-testid="stAppViewContainer"] {
     background: transparent !important;
     background-color: transparent !important;
     color: #ffffff !important;
 }
 
-/* --- THE VIBRANT THEME & 3D LIVE OBJECTS --- */
-.animated-bg {
+/* --- DYNAMIC BACKGROUND & FALLING MEDICAL RAIN ANIMATION --- */
+.medical-rain {
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
-    /* Vibrant deep purple/blue tech gradient */
-    background: linear-gradient(135deg, #09031a, #1a0b2e, #0f1c3f, #001429);
+    background: linear-gradient(135deg, #050511, #120826, #0a192f, #000c18);
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
     z-index: -999;
+    overflow: hidden;
+    pointer-events: none;
 }
 
 @keyframes gradientShift {
@@ -56,62 +64,64 @@ footer {visibility: hidden !important; display: none !important;}
     100% { background-position: 0% 50%; }
 }
 
-.cube-container {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; margin:0; padding:0;
+.medical-rain span {
+    position: absolute;
+    display: block;
+    list-style: none;
+    font-size: 2rem;
+    animation: fall linear infinite;
+    bottom: 110vh;
+    opacity: 0.8;
+    user-select: none;
+    z-index: -998;
 }
 
-.cube-container li {
-    position: absolute; list-style: none; display: block;
-    background: rgba(0, 229, 255, 0.1);
-    border: 1px solid rgba(0, 229, 255, 0.5);
-    box-shadow: 0 0 15px rgba(0, 229, 255, 0.5), inset 0 0 15px rgba(0, 229, 255, 0.3);
-    animation: float3D 20s linear infinite;
-    bottom: -150px;
-    border-radius: 8px; /* Slightly rounded */
-}
+/* Individual falling items configuration for random physics feel */
+.medical-rain span:nth-child(1)  { left: 5%;  animation-duration: 7s;  animation-delay: 0s;  font-size: 2.2rem; }
+.medical-rain span:nth-child(2)  { left: 15%; animation-duration: 5s;  animation-delay: 2s;  font-size: 1.8rem; }
+.medical-rain span:nth-child(3)  { left: 25%; animation-duration: 8s;  animation-delay: 1s;  font-size: 2.5rem; }
+.medical-rain span:nth-child(4)  { left: 35%; animation-duration: 6s;  animation-delay: 4s;  font-size: 2.0rem; }
+.medical-rain span:nth-child(5)  { left: 45%; animation-duration: 9s;  animation-delay: 0.5s;font-size: 2.8rem; }
+.medical-rain span:nth-child(6)  { left: 55%; animation-duration: 7s;  animation-delay: 3s;  font-size: 1.9rem; }
+.medical-rain span:nth-child(7)  { left: 65%; animation-duration: 5s;  animation-delay: 1.5s;font-size: 2.3rem; }
+.medical-rain span:nth-child(8)  { left: 75%; animation-duration: 8s;  animation-delay: 2.5s;font-size: 2.6rem; }
+.medical-rain span:nth-child(9)  { left: 85%; animation-duration: 6s;  animation-delay: 0.8s;font-size: 2.1rem; }
+.medical-rain span:nth-child(10) { left: 92%; animation-duration: 7.5s;animation-delay: 3.5s;font-size: 2.4rem; }
+.medical-rain span:nth-child(11) { left: 50%; animation-duration: 6.5s;animation-delay: 1.8s;font-size: 2.0rem; }
+.medical-rain span:nth-child(12) { left: 80%; animation-duration: 8.5s;animation-delay: 4.2s;font-size: 2.7rem; }
 
-/* Magenta Cubes */
-.cube-container li:nth-child(even) {
-    background: rgba(255, 0, 127, 0.1);
-    border: 1px solid rgba(255, 0, 127, 0.5);
-    box-shadow: 0 0 15px rgba(255, 0, 127, 0.5), inset 0 0 15px rgba(255, 0, 127, 0.3);
-}
-
-/* Randomizing size, position, and speed of 3D objects */
-.cube-container li:nth-child(1) { left: 10%; width: 60px; height: 60px; animation-duration: 25s; animation-delay: 0s; }
-.cube-container li:nth-child(2) { left: 25%; width: 30px; height: 30px; animation-duration: 15s; animation-delay: 2s; }
-.cube-container li:nth-child(3) { left: 45%; width: 100px; height: 100px; animation-duration: 30s; animation-delay: 4s; }
-.cube-container li:nth-child(4) { left: 65%; width: 45px; height: 45px; animation-duration: 20s; animation-delay: 0s; }
-.cube-container li:nth-child(5) { left: 80%; width: 80px; height: 80px; animation-duration: 35s; animation-delay: 1s; }
-.cube-container li:nth-child(6) { left: 15%; width: 50px; height: 50px; animation-duration: 18s; animation-delay: 5s; }
-.cube-container li:nth-child(7) { left: 55%; width: 120px; height: 120px; animation-duration: 40s; animation-delay: 7s; }
-.cube-container li:nth-child(8) { left: 35%; width: 25px; height: 25px; animation-duration: 12s; animation-delay: 3s; }
-.cube-container li:nth-child(9) { left: 75%; width: 70px; height: 70px; animation-duration: 22s; animation-delay: 6s; }
-.cube-container li:nth-child(10) { left: 90%; width: 40px; height: 40px; animation-duration: 14s; animation-delay: 2s; }
-
-/* The actual GPU-accelerated 3D movement */
-@keyframes float3D {
-    0% { transform: translateY(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { transform: translateY(-120vh) rotateX(360deg) rotateY(720deg) rotateZ(360deg); opacity: 0; }
+@keyframes fall {
+    0% {
+        transform: translateY(0vh) rotate(0deg) scale(1);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.9;
+    }
+    90% {
+        opacity: 0.9;
+    }
+    100% {
+        transform: translateY(115vh) rotate(360deg) scale(1.1);
+        opacity: 0;
+    }
 }
 
 /* --- GLASSMORPHISM UI PANELS --- */
 [data-testid="stChatMessageContent"] {
-    background: rgba(15, 10, 30, 0.6) !important;
-    backdrop-filter: blur(12px) !important;
+    background: rgba(15, 10, 30, 0.65) !important;
+    backdrop-filter: blur(14px) !important;
     border: 1px solid rgba(0, 229, 255, 0.3) !important;
     border-radius: 16px !important;
     padding: 16px !important; 
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6) !important;
     transition: all 0.3s ease !important;
 }
 
 [data-testid="stChatMessageContent"]:hover {
     transform: translateY(-5px) !important;
-    box-shadow: 0 12px 40px rgba(0, 229, 255, 0.3) !important;
-    border-color: rgba(0, 229, 255, 0.8) !important;
+    box-shadow: 0 12px 40px rgba(0, 229, 255, 0.4) !important;
+    border-color: rgba(0, 229, 255, 0.9) !important;
 }
 
 /* --- NEON BUTTONS --- */
@@ -127,18 +137,18 @@ footer {visibility: hidden !important; display: none !important;}
 }
 
 .stButton button:hover {
-    background: rgba(0, 229, 255, 0.15) !important;
+    background: rgba(0, 229, 255, 0.2) !important;
     border-color: #00e5ff !important;
-    box-shadow: 0 0 20px rgba(0, 229, 255, 0.6) !important;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.7) !important;
     color: #ffffff !important;
     transform: scale(1.05) !important;
 }
 
 /* --- TEXT INPUT & TABS --- */
 [data-testid="stChatInput"] {
-    background: rgba(10, 5, 20, 0.8) !important;
-    border: 1px solid rgba(255, 0, 127, 0.5) !important;
-    box-shadow: 0 0 15px rgba(255, 0, 127, 0.2) !important;
+    background: rgba(10, 5, 20, 0.85) !important;
+    border: 1px solid rgba(255, 0, 127, 0.6) !important;
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.3) !important;
     border-radius: 12px !important;
 }
 
@@ -149,7 +159,7 @@ footer {visibility: hidden !important; display: none !important;}
 [data-baseweb="tab"][aria-selected="true"] {
     color: #00e5ff !important;
     border-bottom-color: #00e5ff !important;
-    text-shadow: 0 0 10px rgba(0, 229, 255, 0.5) !important;
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.6) !important;
 }
 
 /* --- SUPER GLOWING HEADER --- */
