@@ -77,7 +77,7 @@ st.markdown("""
 @st.cache_data
 def load_inventory_data():
     np.random.seed(42)
-    categories = ["Analgesics",Antibiotics", "Antiseptics", "Cardiovascular", "Respiratory", "Dermatology"]
+    categories = ["Analgesics", "Antibiotics", "Antiseptics", "Cardiovascular", "Respiratory", "Dermatology"]
     medicines = [
         "Paracetamol", "Ibuprofen", "Amoxicillin", "Azithromycin", "Ciprofloxacin",
         "Omeprazole", "Pantoprazole", "Metformin", "Amlodipine", "Losartan",
