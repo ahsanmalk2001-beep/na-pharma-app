@@ -148,7 +148,7 @@ footer {visibility: hidden !important; display: none !important;}
     100% { transform: scale(0.95); opacity: 0.8; }
 }
 
-/* --- GLASSMORPHISM HELD CARDS (3D Medical Panels) --- */
+/* --- GLASSMORPHISM CARDS (3D Medical Panels) --- */
 .hud-card {
     background: rgba(13, 20, 35, 0.75) !important;
     backdrop-filter: blur(16px) !important;
@@ -244,10 +244,10 @@ if not st.session_state.intro_played:
 
         <!-- Phased Boot Console -->
         <div class="boot-console">
-            <div class="boot-line l1">> INITIALIZING AI NEURAL CORE... [OK]</div>
-            <div class="boot-line l2">> CONNECTING PHARMACY DATABASE... [SECURE]</div>
-            <div class="boot-line l3">> ANALYZING MEDICINE LIBRARY & MOLECULES... [LOADED]</div>
-            <div class="boot-line l4">> SYSTEM READY. ACTIVATING HOLOGRAPHIC TERMINAL...</div>
+            <div class="boot-line l1">&gt; INITIALIZING AI NEURAL CORE... [OK]</div>
+            <div class="boot-line l2">&gt; CONNECTING PHARMACY DATABASE... [SECURE]</div>
+            <div class="boot-line l3">&gt; ANALYZING MEDICINE LIBRARY & MOLECULES... [LOADED]</div>
+            <div class="boot-line l4">&gt; SYSTEM READY. ACTIVATING HOLOGRAPHIC TERMINAL...</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -362,7 +362,6 @@ with tab1:
         if active_query:
             total_meds_count = len(df_master) if df_master is not None else 0
             
-            # --- FUTURISTIC ANIMATED AI LOADING STATES ---
             status_container = st.empty()
             with status_container.container():
                 st.markdown("""
@@ -474,19 +473,19 @@ with tab2:
                                 model="llama-3.2-11b-vision-preview",
                                 messages=[
                                     {
-                                            "role": "user",
-                                            "content": [
-                                                {
-                                                    "type": "text",
-                                                    "text": "Extract medications into a clean CSV format with exact headers: Brand Name, Active Salt / Generic Composition, Therapeutic Category, Primary Uses & Indications"
-                                                },
-                                                {
-                                                    "type": "image_url",
-                                                    "image_url": {
-                                                        "url": f"data:image/jpeg;base64,{base64_image}"
-                                                    }
+                                        "role": "user",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Extract medications into a clean CSV format with exact headers: Brand Name, Active Salt / Generic Composition, Therapeutic Category, Primary Uses & Indications"
+                                            },
+                                            {
+                                                "type": "image_url",
+                                                "image_url": {
+                                                    "url": f"data:image/jpeg;base64,{base64_image}"
                                                 }
-                                            ]
+                                            }
+                                        ]
                                     }
                                 ],
                                 stream=False
