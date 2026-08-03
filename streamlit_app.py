@@ -1,7 +1,6 @@
 import io
 import os
 import base64
-import time
 import streamlit as st
 import pandas as pd
 from openai import OpenAI
@@ -24,7 +23,7 @@ footer {visibility: hidden !important; display: none !important;}
 .stDeployButton {display: none !important;}
 [data-testid="stToolbar"] {visibility: hidden !important;}
 
-/* --- GLOBAL APP BACKGROUND (Futuristic Deep Void & Medical Glow) --- */
+/* --- GLOBAL APP BACKGROUND --- */
 .stApp, html, body, [data-testid="stAppViewContainer"] {
     background-color: #030508 !important;
     background-image: 
@@ -40,10 +39,6 @@ footer {visibility: hidden !important; display: none !important;}
     0% { transform: scale(0.6); opacity: 0; filter: blur(10px); }
     50% { opacity: 1; filter: blur(0px); }
     100% { transform: scale(1); opacity: 1; filter: blur(0px); }
-}
-@keyframes scanline {
-    0% { transform: translateY(-100%); }
-    100% { transform: translateY(1000%); }
 }
 .cinematic-splash {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -62,17 +57,17 @@ footer {visibility: hidden !important; display: none !important;}
     background: linear-gradient(135deg, #FFFFFF 0%, #00F3FF 50%, #00FF66 100%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     text-transform: uppercase; letter-spacing: 2px;
-    animation: matrixZoom 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: matrixZoom 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     filter: drop-shadow(0 0 25px rgba(0, 243, 255, 0.5));
     margin-bottom: 15px;
 }
 .holo-subtext {
     color: #94A3B8; font-size: 1rem; text-transform: uppercase;
     letter-spacing: 4px; font-weight: 600;
-    animation: matrixZoom 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: matrixZoom 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* --- PROFESSIONAL STATUS BADGE (Stark HUD Style) --- */
+/* --- PROFESSIONAL STATUS BADGE --- */
 .live-badge {
     display: inline-flex; align-items: center; gap: 8px;
     background: rgba(0, 243, 255, 0.1);
@@ -93,7 +88,7 @@ footer {visibility: hidden !important; display: none !important;}
     100% { transform: scale(0.95); opacity: 0.8; }
 }
 
-/* --- GLASSMORPHISM HELD CARDS (3D Medical Panels) --- */
+/* --- GLASSMORPHISM CARDS --- */
 .hud-card {
     background: rgba(13, 20, 35, 0.75) !important;
     backdrop-filter: blur(16px) !important;
@@ -150,11 +145,8 @@ footer {visibility: hidden !important; display: none !important;}
     margin: 0 auto; font-weight: 900; font-size: 2.8rem !important; text-align: center;
     background: linear-gradient(135deg, #FFFFFF 20%, #00F3FF 70%, #00FF66 100%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    display: inline-block;
-    padding: 4px 16px;
-    letter-spacing: -1px;
-    text-transform: uppercase;
-    filter: drop-shadow(0 0 20px rgba(0, 243, 255, 0.3));
+    display: inline-block; padding: 4px 16px; letter-spacing: -1px;
+    text-transform: uppercase; filter: drop-shadow(0 0 20px rgba(0, 243, 255, 0.3));
 }
 
 /* --- DATAFRAMES --- */
@@ -180,7 +172,7 @@ if not st.session_state.intro_played:
             <p class="holo-subtext">Initializing Holographic Medical Matrix...</p>
             <div style="margin-top: 30px;">
                 <div style="width: 200px; height: 3px; background: rgba(255,255,255,0.1); margin: 0 auto; border-radius: 3px; overflow: hidden;">
-                    <div style="width: 100%; height: 100%; background: linear-gradient(90deg, #00F3FF, #00FF66); animation: loadBar 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;"></div>
+                    <div style="width: 100%; height: 100%; background: linear-gradient(90deg, #00F3FF, #00FF66); animation: loadBar 1.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;"></div>
                 </div>
             </div>
         </div>
@@ -193,7 +185,8 @@ if not st.session_state.intro_played:
     </style>
     """, unsafe_allow_html=True)
     
-    time.sleep(2.8)
+    import time
+    time.sleep(1.5)  # Faster, smoother startup transition
     st.session_state.intro_played = True
     st.rerun()
 
@@ -209,58 +202,36 @@ def load_inventory_data():
         df_master = pd.read_excel(EXCEL_FILE, sheet_name='Full Master Medicine List', header=3)
         df_master.dropna(how='all', inplace=True)
         return df_master
-    except Exception as e:
+    except Exception:
         return None
 
 df_master = load_inventory_data()
 
-# --- 4. SMART SEARCH ALGORITHM ---
-def perform_smart_inventory_search(df, query):
-    if df is None or df.empty:
+# --- 4. OPTIMIZED SMART SEARCH ALGORITHM ---
+@st.cache_data(show_spinner=False)
+def perform_smart_inventory_search(query_clean, df_hash_placeholder=None):
+    # Note: df_master is accessed globally, but caching speeds up repeated queries
+    global df_master
+    if df_master is None or df_master.empty:
         return pd.DataFrame(), "Inventory is empty or uninitialized."
     
-    query_clean = query.lower().strip()
-    brand_col = 'Brand Name' if 'Brand Name' in df.columns else df.columns[0]
-    salt_col = 'Active Salt / Generic Composition' if 'Active Salt / Generic Composition' in df.columns else None
-    category_col = 'Therapeutic Category' if 'Therapeutic Category' in df.columns else None
-    uses_col = 'Primary Uses & Indications' if 'Primary Uses & Indications' in df.columns else None
-    
-    matches = pd.DataFrame()
-    
-    if brand_col in df.columns:
-        b_match = df[df[brand_col].astype(str).str.contains(query_clean, case=False, na=False)]
-        matches = pd.concat([matches, b_match]).drop_duplicates()
-        
-    if salt_col and salt_col in df.columns:
-        s_match = df[df[salt_col].astype(str).str.contains(query_clean, case=False, na=False)]
-        matches = pd.concat([matches, s_match]).drop_duplicates()
+    brand_col = 'Brand Name' if 'Brand Name' in df_master.columns else df_master.columns[0]
+    salt_col = 'Active Salt / Generic Composition' if 'Active Salt / Generic Composition' in df_master.columns else None
+    category_col = 'Therapeutic Category' if 'Therapeutic Category' in df_master.columns else None
+    uses_col = 'Primary Uses & Indications' in df_master.columns and 'Primary Uses & Indications' or None
 
-    if category_col and category_col in df.columns:
-        c_match = df[df[category_col].astype(str).str.contains(query_clean, case=False, na=False)]
-        matches = pd.concat([matches, c_match]).drop_duplicates()
+    exclude_cols = ['Common Side Effects', 'Warnings & Contraindications', 'S.No', 'S. No']
+    target_cols = [c for c in df_master.columns if c not in exclude_cols]
 
-    if uses_col and uses_col in df.columns:
-        u_match = df[df[uses_col].astype(str).str.contains(query_clean, case=False, na=False)]
-        matches = pd.concat([matches, u_match]).drop_duplicates()
+    # Vectorized fast search using string containment across target columns
+    mask = df_master[target_cols].astype(str).apply(lambda col: col.str.contains(query_clean, case=False, na=False)).any(axis=1)
+    matches = df_master[mask]
 
-    if matches.empty:
-        ignore_words = {'find', 'medicine', 'medicines', 'in', 'stock', 'the', 'is', 'are', 'for', 'a', 'an', 'what', 'do', 'you', 'have', 'show'}
-        words = [w for w in query_clean.split() if w not in ignore_words and len(w) > 1]
-        if not words:
-            words = query_clean.split()
-            
-        exclude_cols = ['Common Side Effects', 'Warnings & Contraindications', 'S.No', 'S. No']
-        target_cols = [c for c in df.columns if c not in exclude_cols]
-        
-        mask = pd.Series([False] * len(df))
-        for word in words:
-            mask = mask | df[target_cols].astype(str).apply(lambda x: x.str.contains(word, case=False, na=False)).any(axis=1)
-        matches = df[mask]
-        
-    display_cols = [c for c in ['Brand Name', 'Active Salt / Generic Composition', 'Therapeutic Category', 'Primary Uses & Indications'] if c in df.columns]
+    display_cols = [c for c in ['Brand Name', 'Active Salt / Generic Composition', 'Therapeutic Category', 'Primary Uses & Indications'] if c in df_master.columns]
     
     if not matches.empty:
-        return matches[display_cols].head(15), matches[display_cols].head(15).to_string(index=False)
+        result_df = matches[display_cols].head(15)
+        return result_df, result_df.to_string(index=False)
     else:
         return pd.DataFrame(), "No exact or matching medications found in current inventory records."
 
@@ -285,7 +256,7 @@ with tab1:
     if not api_key:
         st.error("⚠️ GROQ_API_KEY missing in Streamlit secrets.")
     else:
-        client = OpenAI(base_url="https://" + "api.groq.com/openai/v1", api_key=api_key)
+        client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
         
         st.markdown("<p style='color: #94A3B8; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;'>Quick Filters:</p>", unsafe_allow_html=True)
         c1, c2, c3, c4, c5, c6 = st.columns([1,1,1,1,1,1.2])
@@ -298,33 +269,13 @@ with tab1:
         if c6.button("Clear Search"): chip_query = ""
 
         search_input = st.text_input("Search inventory by brand, generic salt, or symptom...", value=chip_query if chip_query is not None else "")
-        active_query = search_input.strip()
+        active_query = search_input.strip().lower()
 
         if active_query:
             total_meds_count = len(df_master) if df_master is not None else 0
             
-            # --- FUTURISTIC ANIMATED AI LOADING STATES ---
-            status_container = st.empty()
-            with status_container.container():
-                st.markdown("""
-                <div class="hud-card" style="text-align: center; padding: 25px; margin-bottom: 15px;">
-                    <div style="color: #00F3FF; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Accessing pharmacy database...</div>
-                    <div style="color: #94A3B8; font-size: 0.8rem;">Querying encrypted nodes & molecular structures...</div>
-                </div>
-                """, unsafe_allow_html=True)
-            time.sleep(0.3)
-            
-            df_matches, context_data = perform_smart_inventory_search(df_master, active_query)
-            
-            with status_container.container():
-                st.markdown("""
-                <div class="hud-card" style="text-align: center; padding: 25px; margin-bottom: 15px;">
-                    <div style="color: #00FF66; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Analyzing medicine information...</div>
-                    <div style="color: #94A3B8; font-size: 0.8rem;">Synthesizing clinical indicators & stock availability...</div>
-                </div>
-                """, unsafe_allow_html=True)
-            time.sleep(0.3)
-            status_container.empty()
+            # --- HIGH-PERFORMANCE INSTANT EXECUTION ---
+            df_matches, context_data = perform_smart_inventory_search(active_query)
 
             col_left, col_right = st.columns([1.2, 1])
 
@@ -338,7 +289,7 @@ with tab1:
 
             with col_right:
                 st.markdown("### Clinical Synthesis")
-                with st.spinner("Preparing response..."):
+                with st.spinner("Synthesizing clinical data..."):
                     try:
                         system_instruction = f"""
                         You are the internal futuristic clinical assistant for NA Pharma Care AI.
@@ -407,7 +358,7 @@ with tab2:
                 if api_key:
                     with st.spinner("Decoding document..."):
                         try:
-                            client_vision = OpenAI(base_url="https://" + "api.groq.com/openai/v1", api_key=api_key)
+                            client_vision = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
                             image_bytes = uploaded_handwriting_image.getvalue()
                             base64_image = base64.b64encode(image_bytes).decode('utf-8')
                             
@@ -415,26 +366,26 @@ with tab2:
                                 model="llama-3.2-11b-vision-preview",
                                 messages=[
                                     {
-                                            "role": "user",
-                                            "content": [
-                                                {
-                                                    "type": "text",
-                                                    "text": "Extract medications into a clean CSV format with exact headers: Brand Name, Active Salt / Generic Composition, Therapeutic Category, Primary Uses & Indications"
-                                                },
-                                                {
-                                                    "type": "image_url",
-                                                    "image_url": {
-                                                        "url": f"data:image/jpeg;base64,{base64_image}"
-                                                    }
+                                        "role": "user",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Extract medications into a clean CSV format with exact headers: Brand Name, Active Salt / Generic Composition, Therapeutic Category, Primary Uses & Indications"
+                                            },
+                                            {
+                                                "type": "image_url",
+                                                "image_url": {
+                                                    "url": f"data:image/jpeg;base64,{base64_image}"
                                                 }
-                                            ]
+                                            }
+                                        ]
                                     }
                                 ],
                                 stream=False
                             )
                             
                             decoded_csv = vision_response.choices[0].message.content
-                            cleaned_csv_text = decoded_csv.replace(chr(96) * 3 + "csv", "").replace(chr(96) * 3, "").strip()
+                            cleaned_csv_text = decoded_csv.replace("```csv", "").replace("```", "").strip()
                             df_temp_preview = pd.read_csv(io.StringIO(cleaned_csv_text))
                             
                             st.session_state['ocr_preview_df'] = df_temp_preview
@@ -486,7 +437,7 @@ with tab2:
                         Text:
                         {raw_supplier_text}
                         """
-                        parse_response = OpenAI(base_url="https://" + "api.groq.com/openai/v1", api_key=api_key).chat.completions.create(
+                        parse_response = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key).chat.completions.create(
                             model="llama-3.1-8b-instant",
                             messages=[{"role": "user", "content": parsing_prompt}],
                             stream=False
