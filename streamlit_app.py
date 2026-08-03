@@ -8,13 +8,13 @@ from openai import OpenAI
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="NA Pharma Care - Cinematic AI Terminal",
+    page_title="NA Pharma Care - Futuristic AI Terminal",
     page_icon="🧬",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. 4K CINEMATIC INTRO & FUTURISTIC DESIGN SYSTEM ---
+# --- 2. CINEMATIC INTRO & FUTURISTIC DESIGN SYSTEM ---
 st.markdown("""
 <style>
 /* --- HIDE STREAMLIT BRANDING --- */
@@ -24,110 +24,55 @@ footer {visibility: hidden !important; display: none !important;}
 .stDeployButton {display: none !important;}
 [data-testid="stToolbar"] {visibility: hidden !important;}
 
-/* --- GLOBAL APP BACKGROUND (Futuristic Void & Holographic Glow) --- */
+/* --- GLOBAL APP BACKGROUND (Futuristic Deep Void & Medical Glow) --- */
 .stApp, html, body, [data-testid="stAppViewContainer"] {
-    background-color: #020408 !important;
+    background-color: #030508 !important;
     background-image: 
-        radial-gradient(circle at 50% 30%, rgba(0, 243, 255, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 85% 85%, rgba(0, 255, 102, 0.06) 0%, transparent 45%),
-        linear-gradient(135deg, #020408 0%, #080d1a 100%) !important;
+        radial-gradient(circle at 50% 20%, rgba(0, 243, 255, 0.07) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(0, 255, 102, 0.05) 0%, transparent 40%),
+        linear-gradient(135deg, #030508 0%, #0a0f1d 100%) !important;
     color: #F8FAFC !important;
     font-family: 'Inter', -apple-system, sans-serif !important;
 }
 
-/* --- 4K CINEMATIC INTRO OVERLAY --- */
+/* --- CINEMATIC INTRO OVERLAY --- */
+@keyframes matrixZoom {
+    0% { transform: scale(0.6); opacity: 0; filter: blur(10px); }
+    50% { opacity: 1; filter: blur(0px); }
+    100% { transform: scale(1); opacity: 1; filter: blur(0px); }
+}
+@keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(1000%); }
+}
 .cinematic-splash {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: radial-gradient(circle at center, #060b18 0%, #010204 100%);
+    background: radial-gradient(circle at center, #0a1128 0%, #020408 100%);
     z-index: 999999; display: flex; flex-direction: column;
     justify-content: center; align-items: center; text-align: center;
-    overflow: hidden; perspective: 1200px;
+    overflow: hidden; padding: 20px;
 }
 .cinematic-splash::after {
     content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%), linear-gradient(90deg, rgba(0, 243, 255, 0.03), rgba(0, 255, 102, 0.01), rgba(128, 0, 255, 0.03));
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
     z-index: 2000000; background-size: 100% 4px, 6px 100%; pointer-events: none;
 }
-
-/* --- 3D AI CORE & ROTATING HUD RINGS --- */
-.ai-core-container {
-    position: absolute; width: 260px; height: 260px;
-    display: flex; justify-content: center; align-items: center;
-    animation: coreFadeIn 5.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.ai-core-orb {
-    width: 70px; height: 70px; background: radial-gradient(circle, #00F3FF 0%, #00FF66 60%, transparent 100%);
-    border-radius: 50%; box-shadow: 0 0 50px #00F3FF, 0 0 100px #00FF66, inset 0 0 15px #FFFFFF;
-    animation: corePulse 2s infinite ease-in-out; z-index: 3;
-}
-.hud-ring {
-    position: absolute; border-radius: 50%; border: 2px dashed rgba(0, 243, 255, 0.4);
-    box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
-}
-.ring-1 { width: 160px; height: 160px; border-color: rgba(0, 243, 255, 0.6); border-top-color: transparent; border-bottom-color: transparent; animation: spinClockwise 4s linear infinite; }
-.ring-2 { width: 220px; height: 220px; border-color: rgba(0, 255, 102, 0.5); border-left-color: transparent; border-right-color: transparent; animation: spinCounter 6s linear infinite; }
-.ring-3 { width: 280px; height: 280px; border-color: rgba(128, 0, 255, 0.4); border-style: dotted; animation: spinClockwise 10s linear infinite; }
-
-@keyframes corePulse {
-    0% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 40px #00F3FF, 0 0 80px #00FF66; }
-    50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 70px #00F3FF, 0 0 120px #00FF66; }
-    100% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 40px #00F3FF, 0 0 80px #00FF66; }
-}
-@keyframes spinClockwise { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-@keyframes spinCounter { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
-@keyframes coreFadeIn {
-    0% { opacity: 0; transform: scale(0.2); }
-    30% { opacity: 1; transform: scale(1); }
-    85% { opacity: 1; transform: scale(1); filter: blur(0px); }
-    100% { opacity: 0; transform: scale(1.8); filter: blur(8px); }
-}
-
-/* --- CINEMATIC 3D ZOOMING WELCOME TEXT --- */
-.text-3d-container {
-    position: absolute; width: 100%; text-align: center; z-index: 10;
-    animation: cinematicTextZoom 5.5s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
-}
-.welcome-3d-text {
-    font-weight: 900; font-size: 3rem !important; letter-spacing: 3px;
-    background: linear-gradient(135deg, #FFFFFF 20%, #00F3FF 60%, #00FF66 100%);
+.holo-text {
+    font-weight: 900; font-size: 3.2rem !important;
+    background: linear-gradient(135deg, #FFFFFF 0%, #00F3FF 50%, #00FF66 100%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    text-transform: uppercase;
-    filter: drop-shadow(0 0 30px rgba(0, 243, 255, 0.6));
-    margin: 0;
+    text-transform: uppercase; letter-spacing: 2px;
+    animation: matrixZoom 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    filter: drop-shadow(0 0 25px rgba(0, 243, 255, 0.5));
+    margin-bottom: 15px;
 }
-@keyframes cinematicTextZoom {
-    0% { transform: scale(0.1) translateZ(-800px); opacity: 0; filter: blur(15px); }
-    25% { opacity: 1; filter: blur(0px); }
-    75% { transform: scale(1) translateZ(0px); opacity: 1; filter: blur(0px); }
-    100% { transform: scale(2.4) translateZ(400px); opacity: 0; filter: blur(10px); }
-}
-
-/* --- BOOT SEQUENCE STATUS CONSOLE --- */
-.boot-console {
-    position: absolute; bottom: 60px; width: 80%; max-width: 500px;
-    background: rgba(6, 11, 24, 0.85); border: 1px solid rgba(0, 243, 255, 0.3);
-    border-radius: 6px; padding: 14px 20px; font-family: 'Courier New', monospace;
-    font-size: 0.85rem; color: #00F3FF; text-align: left;
-    box-shadow: 0 0 25px rgba(0, 243, 255, 0.2);
-    animation: consoleFade 5.5s ease forwards; z-index: 15;
-}
-.boot-line { margin: 4px 0; opacity: 0; animation: revealLine 1.2s forwards; }
-.l1 { animation-delay: 0.8s; }
-.l2 { animation-delay: 2.0s; color: #00FF66; }
-.l3 { animation-delay: 3.2s; color: #A855F7; }
-.l4 { animation-delay: 4.4s; color: #FFFFFF; font-weight: bold; }
-
-@keyframes revealLine {
-    0% { opacity: 0; transform: translateX(-10px); }
-    100% { opacity: 1; transform: translateX(0); }
-}
-@keyframes consoleFade {
-    0% { opacity: 1; }
-    85% { opacity: 1; }
-    100% { opacity: 0; transform: scale(0.95); }
+.holo-subtext {
+    color: #94A3B8; font-size: 1rem; text-transform: uppercase;
+    letter-spacing: 4px; font-weight: 600;
+    animation: matrixZoom 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* --- PROFESSIONAL STATUS BADGE --- */
+/* --- PROFESSIONAL STATUS BADGE (Stark HUD Style) --- */
 .live-badge {
     display: inline-flex; align-items: center; gap: 8px;
     background: rgba(0, 243, 255, 0.1);
@@ -148,7 +93,7 @@ footer {visibility: hidden !important; display: none !important;}
     100% { transform: scale(0.95); opacity: 0.8; }
 }
 
-/* --- GLASSMORPHISM CARDS (3D Medical Panels) --- */
+/* --- GLASSMORPHISM HELD CARDS (3D Medical Panels) --- */
 .hud-card {
     background: rgba(13, 20, 35, 0.75) !important;
     backdrop-filter: blur(16px) !important;
@@ -228,31 +173,27 @@ if 'intro_played' not in st.session_state:
 
 if not st.session_state.intro_played:
     st.markdown("""
-    <div class="cinematic-splash">
-        <!-- 3D AI Core & Rotating HUD Rings -->
-        <div class="ai-core-container">
-            <div class="hud-ring ring-1"></div>
-            <div class="hud-ring ring-2"></div>
-            <div class="hud-ring ring-3"></div>
-            <div class="ai-core-orb"></div>
-        </div>
-
-        <!-- Cinematic 3D Zooming Text -->
-        <div class="text-3d-container">
-            <h1 class="welcome-3d-text">WELCOME TO NA PHARMA CARE AI</h1>
-        </div>
-
-        <!-- Phased Boot Console -->
-        <div class="boot-console">
-            <div class="boot-line l1">&gt; INITIALIZING AI NEURAL CORE... [OK]</div>
-            <div class="boot-line l2">&gt; CONNECTING PHARMACY DATABASE... [SECURE]</div>
-            <div class="boot-line l3">&gt; ANALYZING MEDICINE LIBRARY & MOLECULES... [LOADED]</div>
-            <div class="boot-line l4">&gt; SYSTEM READY. ACTIVATING HOLOGRAPHIC TERMINAL...</div>
+    <div class="cinematic-splash" id="splash-screen">
+        <div>
+            <div style="font-size: 3.5rem; margin-bottom: 10px;">🧬</div>
+            <h1 class="holo-text">Welcome to NA Pharma Care AI</h1>
+            <p class="holo-subtext">Initializing Holographic Medical Matrix...</p>
+            <div style="margin-top: 30px;">
+                <div style="width: 200px; height: 3px; background: rgba(255,255,255,0.1); margin: 0 auto; border-radius: 3px; overflow: hidden;">
+                    <div style="width: 100%; height: 100%; background: linear-gradient(90deg, #00F3FF, #00FF66); animation: loadBar 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;"></div>
+                </div>
+            </div>
         </div>
     </div>
+    <style>
+    @keyframes loadBar {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    </style>
     """, unsafe_allow_html=True)
     
-    time.sleep(5.3)
+    time.sleep(2.8)
     st.session_state.intro_played = True
     st.rerun()
 
@@ -362,6 +303,7 @@ with tab1:
         if active_query:
             total_meds_count = len(df_master) if df_master is not None else 0
             
+            # --- FUTURISTIC ANIMATED AI LOADING STATES ---
             status_container = st.empty()
             with status_container.container():
                 st.markdown("""
@@ -439,16 +381,16 @@ with tab1:
 with tab2:
     st.markdown("### Inventory Ingestion Hub")
     
-    ingestion_mode = st.radio(
-        "Select Ingestion Method",
-        ["Handwritten Scanner", "Text / WhatsApp Parser", "Bulk Importer", "Live Grid Editor", "Single Item Form"],
-        horizontal=True
-    )
+    sub_tab1, sub_tab2, sub_tab3, sub_tab4, sub_tab5 = st.tabs([
+        "Handwritten Scanner", 
+        "Text / WhatsApp Parser", 
+        "Bulk Importer", 
+        "Live Grid Editor", 
+        "Single Item Form"
+    ])
     
-    st.markdown("---")
-
-    # --- SUB-MODE 1: HANDWRITTEN PAPER SCANNER ---
-    if ingestion_mode == "Handwritten Scanner":
+    # --- SUB-TAB 1: HANDWRITTEN PAPER SCANNER ---
+    with sub_tab1:
         st.markdown("""
         <div class="hud-card" style="margin-bottom: 15px;">
             <h4 style="color: #F8FAFC; margin-top: 0; font-size: 1rem;">Handwritten Document OCR</h4>
@@ -473,19 +415,19 @@ with tab2:
                                 model="llama-3.2-11b-vision-preview",
                                 messages=[
                                     {
-                                        "role": "user",
-                                        "content": [
-                                            {
-                                                "type": "text",
-                                                "text": "Extract medications into a clean CSV format with exact headers: Brand Name, Active Salt / Generic Composition, Therapeutic Category, Primary Uses & Indications"
-                                            },
-                                            {
-                                                "type": "image_url",
-                                                "image_url": {
-                                                    "url": f"data:image/jpeg;base64,{base64_image}"
+                                            "role": "user",
+                                            "content": [
+                                                {
+                                                    "type": "text",
+                                                    "text": "Extract medications into a clean CSV format with exact headers: Brand Name, Active Salt / Generic Composition, Therapeutic Category, Primary Uses & Indications"
+                                                },
+                                                {
+                                                    "type": "image_url",
+                                                    "image_url": {
+                                                        "url": f"data:image/jpeg;base64,{base64_image}"
+                                                    }
                                                 }
-                                            }
-                                        ]
+                                            ]
                                     }
                                 ],
                                 stream=False
@@ -523,8 +465,8 @@ with tab2:
                     except Exception as e:
                         st.error(f"Commit error: {e}")
 
-    # --- SUB-MODE 2: AI TEXT & WHATSAPP PARSER ---
-    elif ingestion_mode == "Text / WhatsApp Parser":
+    # --- SUB-TAB 2: AI TEXT & WHATSAPP PARSER ---
+    with sub_tab2:
         st.markdown("""
         <div class="hud-card" style="margin-bottom: 15px;">
             <h4 style="color: #F8FAFC; margin-top: 0; font-size: 1rem;">Text Log Parser</h4>
@@ -554,8 +496,8 @@ with tab2:
                     except Exception as e:
                         st.error(f"Error: {e}")
 
-    # --- SUB-MODE 3: BULK FILE IMPORTER ---
-    elif ingestion_mode == "Bulk Importer":
+    # --- SUB-TAB 3: BULK FILE IMPORTER ---
+    with sub_tab3:
         uploaded_bulk_file = st.file_uploader("Upload File (.xlsx or .csv)", type=["xlsx", "csv"])
         if uploaded_bulk_file is not None:
             try:
@@ -573,8 +515,8 @@ with tab2:
             except Exception as e:
                 st.error(f"Error: {e}")
 
-    # --- SUB-MODE 4: LIVE BROWSER GRID ---
-    elif ingestion_mode == "Live Grid Editor":
+    # --- SUB-TAB 4: LIVE BROWSER GRID ---
+    with sub_tab4:
         if df_master is not None:
             empty_template = pd.DataFrame(columns=df_master.columns)
             edited_grid_df = st.data_editor(empty_template, num_rows="dynamic", use_container_width=True, height=250)
@@ -592,8 +534,8 @@ with tab2:
                     except Exception as e:
                         st.error(f"Error: {e}")
 
-    # --- SUB-MODE 5: SINGLE ITEM FORM ---
-    elif ingestion_mode == "Single Item Form":
+    # --- SUB-TAB 5: SINGLE ITEM FORM ---
+    with sub_tab5:
         if df_master is not None:
             with st.form("add_single_form"):
                 new_brand = st.text_input("Brand Name*")
