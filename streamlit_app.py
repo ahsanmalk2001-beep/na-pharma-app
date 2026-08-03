@@ -7,13 +7,59 @@ from openai import OpenAI
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="NA Pharma Care - Enterprise Neural Terminal",
-    page_icon="💊",
+    page_title="NA Pharma Care - S.H.I.E.L.D. Enterprise Terminal",
+    page_icon="🦸‍♂️",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. ENTERPRISE CLINICAL UI DESIGN SYSTEM ---
+# --- 2. AUTHENTICATION STATE INITIALIZATION ---
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+
+def check_password():
+    """Validates entered password against Streamlit secrets or default fallback."""
+    def password_entered():
+        # Retrieves password from Streamlit secrets (.streamlit/secrets.toml)
+        correct_password = st.secrets.get("APP_PASSWORD", "marvel-secure-2026")
+        
+        if st.session_state["password_input"] == correct_password:
+            st.session_state["authenticated"] = True
+            del st.session_state["password_input"]  # Clear password from session
+        else:
+            st.session_state["authenticated"] = False
+            st.error("❌ Access Denied: Incorrect Security Key")
+
+    if not st.session_state["authenticated"]:
+        # Inline styles to ensure the login screen matches the Marvel dark theme
+        st.markdown("""
+        <style>
+        .stApp, html, body {
+            background-color: #0A0A0A !important;
+            color: #FFFFFF !important;
+        }
+        </style>
+        <div style="display: flex; justify-content: center; align-items: center; height: 70vh;">
+            <div style="background: rgba(26, 28, 32, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(237, 29, 36, 0.4); border-radius: 4px; padding: 30px; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,0.6);">
+                <h3 style="color: #EC1D24; text-align: center; margin-top: 0; font-weight: 900; text-transform: uppercase;">🦸‍♂️ Restricted Node</h3>
+                <p style="color: #94a3b8; text-align: center; font-size: 0.85rem; margin-bottom: 20px;">Enter security clearance credentials to initialize terminal.</p>
+        """, unsafe_allow_html=True)
+        
+        st.text_input("Security Key", type="password", key="password_input", on_change=password_entered, label_visibility="collapsed")
+        
+        st.markdown("""
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        return False
+        
+    return True
+
+# Gate the entire application execution
+if not check_password():
+    st.stop()
+
+# --- 3. MARVEL ENTERPRISE CLINICAL UI DESIGN SYSTEM ---
 st.markdown("""
 <style>
 /* --- HIDE STREAMLIT BRANDING --- */
@@ -23,36 +69,26 @@ footer {visibility: hidden !important; display: none !important;}
 .stDeployButton {display: none !important;}
 [data-testid="stToolbar"] {visibility: hidden !important;}
 
-/* --- GLOBAL APP BACKGROUND (Obsidian Slate Theme) --- */
+/* --- GLOBAL APP BACKGROUND (Comic-Ink Dark Theme) --- */
 .stApp, html, body, [data-testid="stAppViewContainer"] {
-    background-color: #07090e !important;
-    background-image: linear-gradient(135deg, #07090e 0%, #0d1117 100%) !important;
-    color: #e2e8f0 !important;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    background-color: #0A0A0A !important;
+    background-image: linear-gradient(135deg, #050505 0%, #1A1C20 100%) !important;
+    color: #FFFFFF !important;
+    font-family: 'Inter', -apple-system, sans-serif !important;
 }
 
-/* --- SUBTLE SUB-GRID BACKGROUND --- *
-.stApp::before {
-    content: "";
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background-image: linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-                      linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-    background-size: 32px 32px;
-    z-index: 0; pointer-events: none;
-}
-
-/* --- PROFESSIONAL STATUS BADGE --- */
+/* --- PROFESSIONAL STATUS BADGE (Stark HUD Style) --- */
 .live-badge {
     display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(56, 189, 248, 0.08);
-    border: 1px solid rgba(56, 189, 248, 0.25);
-    padding: 5px 12px; border-radius: 6px;
-    font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px;
-    color: #38bdf8;
+    background: rgba(236, 29, 36, 0.15);
+    border: 1px solid rgba(236, 29, 36, 0.4);
+    padding: 5px 12px; border-radius: 4px;
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+    color: #EC1D24;
 }
 .pulse-dot {
-    width: 6px; height: 6px; background-color: #38bdf8; border-radius: 50%;
-    box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+    width: 6px; height: 6px; background-color: #EC1D24; border-radius: 50%;
+    box-shadow: 0 0 10px rgba(236, 29, 36, 0.9);
     animation: livePulse 2s infinite ease-in-out;
 }
 @keyframes livePulse {
@@ -61,71 +97,75 @@ footer {visibility: hidden !important; display: none !important;}
     100% { transform: scale(0.95); opacity: 0.8; }
 }
 
-/* --- ELEVATED CARD SURFACES --- */
+/* --- ELEVATED CARD SURFACES (Comic Panels) --- */
 .hud-card {
-    background: rgba(15, 23, 42, 0.7) !important;
+    background: rgba(26, 28, 32, 0.85) !important;
     backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 10px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 2px !important; /* Sharp comic panel edges */
     padding: 20px !important;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
     transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 .hud-card:hover {
-    border-color: rgba(56, 189, 248, 0.3) !important;
-    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.6) !important;
+    border-color: rgba(236, 29, 36, 0.6) !important;
+    box-shadow: 0 6px 25px rgba(236, 29, 36, 0.15) !important;
 }
 
-/* --- PRECISION BUTTONS --- */
+/* --- ACTION BUTTONS --- */
 .stButton button {
-    background: #1e293b !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 8px !important;
-    color: #f8fafc !important;
-    font-weight: 600 !important;
+    background: #1A1C20 !important;
+    border: 2px solid #EC1D24 !important;
+    border-radius: 2px !important;
+    color: #FFFFFF !important;
+    font-weight: 800 !important;
     font-size: 0.85rem !important;
-    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
     transition: all 0.2s ease !important;
 }
 .stButton button:hover {
-    background: #38bdf8 !important;
-    border-color: #38bdf8 !important;
-    color: #0f172a !important;
-    box-shadow: 0 0 15px rgba(56, 189, 248, 0.3) !important;
+    background: #EC1D24 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 0 15px rgba(236, 29, 36, 0.5) !important;
 }
 
 /* --- INPUT FIELDS --- */
-[data-testid="stTextInput"] input {
-    background: #0b0f19 !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 8px !important;
-    color: #f8fafc !important;
+[data-testid="stTextInput"] input, [data-testid="stTextArea"] textarea {
+    background: #050505 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 2px !important;
+    color: #FFFFFF !important;
     font-size: 0.95rem !important;
     padding: 12px 16px !important;
     transition: border-color 0.2s ease !important;
 }
-[data-testid="stTextInput"] input:focus {
-    border-color: #38bdf8 !important;
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2) !important;
+[data-testid="stTextInput"] input:focus, [data-testid="stTextArea"] textarea:focus {
+    border-color: #EC1D24 !important;
+    box-shadow: 0 0 0 2px rgba(236, 29, 36, 0.3) !important;
 }
 
-/* --- HEADINGS --- */
+/* --- HEADINGS (Classic Marvel Title Style) --- */
 .clean-title {
-    margin: 0; font-weight: 800; font-size: 2.4rem !important; text-align: center;
-    color: #f8fafc;
-    letter-spacing: -0.5px;
+    margin: 0 auto; font-weight: 900; font-size: 2.6rem !important; text-align: center;
+    color: #FFFFFF;
+    background-color: #EC1D24; /* Official Marvel Red */
+    display: inline-block;
+    padding: 4px 16px;
+    letter-spacing: -1px;
+    text-transform: uppercase;
 }
 
 /* --- DATAFRAMES --- */
 [data-testid="stDataFrame"] {
-    background: rgba(11, 15, 25, 0.8) !important;
-    border-radius: 8px !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background: rgba(26, 28, 32, 0.9) !important;
+    border-radius: 2px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. HIGH-SPEED DATA LOADER ---
+# --- 4. HIGH-SPEED DATA LOADER ---
 EXCEL_FILE = "inventory.xlsx"
 api_key = st.secrets.get("GROQ_API_KEY")
 
@@ -142,7 +182,7 @@ def load_inventory_data():
 
 df_master = load_inventory_data()
 
-# --- 4. SMART SEARCH ALGORITHM ---
+# --- 5. SMART SEARCH ALGORITHM ---
 def perform_smart_inventory_search(df, query):
     if df is None or df.empty:
         return pd.DataFrame(), "Inventory is empty or uninitialized."
@@ -192,20 +232,20 @@ def perform_smart_inventory_search(df, query):
     else:
         return pd.DataFrame(), "No exact or matching medications found in current inventory records."
 
-# --- 5. HEADER WITH SYSTEM STATUS ---
+# --- 6. HEADER WITH SYSTEM STATUS ---
 st.markdown("""
 <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 8px;">
     <div class="live-badge">
-        <div class="pulse-dot"></div> Secure Enterprise Node • Live
+        <div class="pulse-dot"></div> S.H.I.E.L.D. Secure Node • Live
     </div>
 </div>
 <div style="text-align: center; padding: 0 0 24px 0;">
     <h1 class="clean-title">NA Pharma Care</h1>
-    <p style="color: #64748b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; margin-top: 6px;">Clinical Intelligence Matrix & Inventory Engine</p>
+    <p style="color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; margin-top: 6px;">Clinical Intelligence Matrix & Inventory Engine</p>
 </div>
 """, unsafe_allow_html=True)
 
-# --- 6. TABS NAVIGATION ---
+# --- 7. TABS NAVIGATION ---
 tab1, tab2 = st.tabs(["⚡ Command Center", "➕ Inventory Ingestion Hub"])
 
 # --- TAB 1: COMMAND CENTER ---
@@ -279,7 +319,7 @@ with tab1:
             st.markdown("""
             <div class="hud-card" style="text-align: center; padding: 45px 20px; margin-top: 15px;">
                 <h3 style="color: #f8fafc; margin-bottom: 8px; font-weight: 700; font-size: 1.2rem;">System Ready</h3>
-                <p style="color: #64748b; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">Enter a search query above or select a quick filter to query the live inventory matrix.</p>
+                <p style="color: #94a3b8; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">Enter a search query above or select a quick filter to query the live inventory matrix.</p>
             </div>
             """, unsafe_allow_html=True)
 
