@@ -440,16 +440,16 @@ with tab1:
 with tab2:
     st.markdown("### Inventory Ingestion Hub")
     
-    sub_tab1, sub_tab2, sub_tab3, sub_tab4, sub_tab5 = st.tabs([
-        "Handwritten Scanner", 
-        "Text / WhatsApp Parser", 
-        "Bulk Importer", 
-        "Live Grid Editor", 
-        "Single Item Form"
-    ])
+    ingestion_mode = st.radio(
+        "Select Ingestion Method",
+        ["Handwritten Scanner", "Text / WhatsApp Parser", "Bulk Importer", "Live Grid Editor", "Single Item Form"],
+        horizontal=True
+    )
     
-    # --- SUB-TAB 1: HANDWRITTEN PAPER SCANNER ---
-    with sub_tab1:
+    st.markdown("---")
+
+    # --- SUB-MODE 1: HANDWRITTEN PAPER SCANNER ---
+    if ingestion_mode == "Handwritten Scanner":
         st.markdown("""
         <div class="hud-card" style="margin-bottom: 15px;">
             <h4 style="color: #F8FAFC; margin-top: 0; font-size: 1rem;">Handwritten Document OCR</h4>
@@ -524,8 +524,8 @@ with tab2:
                     except Exception as e:
                         st.error(f"Commit error: {e}")
 
-    # --- SUB-TAB 2: AI TEXT & WHATSAPP PARSER ---
-    with sub_tab2:
+    # --- SUB-MODE 2: AI TEXT & WHATSAPP PARSER ---
+    elif ingestion_mode == "Text / WhatsApp Parser":
         st.markdown("""
         <div class="hud-card" style="margin-bottom: 15px;">
             <h4 style="color: #F8FAFC; margin-top: 0; font-size: 1rem;">Text Log Parser</h4>
@@ -555,8 +555,8 @@ with tab2:
                     except Exception as e:
                         st.error(f"Error: {e}")
 
-    # --- SUB-TAB 3: BULK FILE IMPORTER ---
-    with sub_tab3:
+    # --- SUB-MODE 3: BULK FILE IMPORTER ---
+    elif ingestion_mode == "Bulk Importer":
         uploaded_bulk_file = st.file_uploader("Upload File (.xlsx or .csv)", type=["xlsx", "csv"])
         if uploaded_bulk_file is not None:
             try:
@@ -574,8 +574,8 @@ with tab2:
             except Exception as e:
                 st.error(f"Error: {e}")
 
-    # --- SUB-TAB 4: LIVE BROWSER GRID ---
-    with sub_tab4:
+    # --- SUB-MODE 4: LIVE BROWSER GRID ---
+    elif ingestion_mode == "Live Grid Editor":
         if df_master is not None:
             empty_template = pd.DataFrame(columns=df_master.columns)
             edited_grid_df = st.data_editor(empty_template, num_rows="dynamic", use_container_width=True, height=250)
@@ -593,8 +593,8 @@ with tab2:
                     except Exception as e:
                         st.error(f"Error: {e}")
 
-    # --- SUB-TAB 5: SINGLE ITEM FORM ---
-    with sub_tab5:
+    # --- SUB-MODE 5: SINGLE ITEM FORM ---
+    elif ingestion_mode == "Single Item Form":
         if df_master is not None:
             with st.form("add_single_form"):
                 new_brand = st.text_input("Brand Name*")
