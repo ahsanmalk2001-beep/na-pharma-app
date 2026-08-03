@@ -1,19 +1,20 @@
 import io
 import os
 import base64
+import time
 import streamlit as st
 import pandas as pd
 from openai import OpenAI
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="NA Pharma Care - S.H.I.E.L.D. Enterprise Terminal",
-    page_icon="🦸‍♂️",
+    page_title="NA Pharma Care - Futuristic AI Terminal",
+    page_icon="🧬",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. MARVEL ENTERPRISE CLINICAL UI DESIGN SYSTEM ---
+# --- 2. CINEMATIC INTRO & FUTURISTIC DESIGN SYSTEM ---
 st.markdown("""
 <style>
 /* --- HIDE STREAMLIT BRANDING --- */
@@ -23,101 +24,178 @@ footer {visibility: hidden !important; display: none !important;}
 .stDeployButton {display: none !important;}
 [data-testid="stToolbar"] {visibility: hidden !important;}
 
-/* --- GLOBAL APP BACKGROUND (Comic-Ink Dark Theme) --- */
+/* --- GLOBAL APP BACKGROUND (Futuristic Deep Void & Medical Glow) --- */
 .stApp, html, body, [data-testid="stAppViewContainer"] {
-    background-color: #0A0A0A !important;
-    background-image: linear-gradient(135deg, #050505 0%, #1A1C20 100%) !important;
-    color: #FFFFFF !important;
+    background-color: #030508 !important;
+    background-image: 
+        radial-gradient(circle at 50% 20%, rgba(0, 243, 255, 0.07) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(0, 255, 102, 0.05) 0%, transparent 40%),
+        linear-gradient(135deg, #030508 0%, #0a0f1d 100%) !important;
+    color: #F8FAFC !important;
     font-family: 'Inter', -apple-system, sans-serif !important;
+}
+
+/* --- CINEMATIC INTRO OVERLAY --- */
+@keyframes matrixZoom {
+    0% { transform: scale(0.6); opacity: 0; filter: blur(10px); }
+    50% { opacity: 1; filter: blur(0px); }
+    100% { transform: scale(1); opacity: 1; filter: blur(0px); }
+}
+@keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(1000%); }
+}
+.cinematic-splash {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: radial-gradient(circle at center, #0a1128 0%, #020408 100%);
+    z-index: 999999; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; text-align: center;
+    overflow: hidden; padding: 20px;
+}
+.cinematic-splash::after {
+    content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 2000000; background-size: 100% 4px, 6px 100%; pointer-events: none;
+}
+.holo-text {
+    font-weight: 900; font-size: 3.2rem !important;
+    background: linear-gradient(135deg, #FFFFFF 0%, #00F3FF 50%, #00FF66 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-transform: uppercase; letter-spacing: 2px;
+    animation: matrixZoom 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    filter: drop-shadow(0 0 25px rgba(0, 243, 255, 0.5));
+    margin-bottom: 15px;
+}
+.holo-subtext {
+    color: #94A3B8; font-size: 1rem; text-transform: uppercase;
+    letter-spacing: 4px; font-weight: 600;
+    animation: matrixZoom 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* --- PROFESSIONAL STATUS BADGE (Stark HUD Style) --- */
 .live-badge {
     display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(236, 29, 36, 0.15);
-    border: 1px solid rgba(236, 29, 36, 0.4);
-    padding: 5px 12px; border-radius: 4px;
+    background: rgba(0, 243, 255, 0.1);
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    padding: 6px 14px; border-radius: 6px;
     font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
-    color: #EC1D24;
+    color: #00F3FF;
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);
 }
 .pulse-dot {
-    width: 6px; height: 6px; background-color: #EC1D24; border-radius: 50%;
-    box-shadow: 0 0 10px rgba(236, 29, 36, 0.9);
+    width: 6px; height: 6px; background-color: #00FF66; border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 255, 102, 0.9);
     animation: livePulse 2s infinite ease-in-out;
 }
 @keyframes livePulse {
     0% { transform: scale(0.95); opacity: 0.8; }
-    50% { transform: scale(1.1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 18px rgba(0, 255, 102, 1); }
     100% { transform: scale(0.95); opacity: 0.8; }
 }
 
-/* --- ELEVATED CARD SURFACES (Comic Panels) --- */
+/* --- GLASSMORPHISM HELD CARDS (3D Medical Panels) --- */
 .hud-card {
-    background: rgba(26, 28, 32, 0.85) !important;
-    backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 2px !important;
-    padding: 20px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    background: rgba(13, 20, 35, 0.75) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(0, 243, 255, 0.15) !important;
+    border-radius: 8px !important;
+    padding: 24px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .hud-card:hover {
-    border-color: rgba(236, 29, 36, 0.6) !important;
-    box-shadow: 0 6px 25px rgba(236, 29, 36, 0.15) !important;
+    border-color: rgba(0, 243, 255, 0.4) !important;
+    box-shadow: 0 12px 40px rgba(0, 243, 255, 0.12), inset 0 1px 2px rgba(0, 243, 255, 0.2) !important;
+    transform: translateY(-2px);
 }
 
 /* --- ACTION BUTTONS --- */
 .stButton button {
-    background: #1A1C20 !important;
-    border: 2px solid #EC1D24 !important;
-    border-radius: 2px !important;
-    color: #FFFFFF !important;
-    font-weight: 800 !important;
+    background: linear-gradient(135deg, rgba(13, 20, 35, 0.9) 0%, rgba(20, 32, 56, 0.9) 100%) !important;
+    border: 1px solid rgba(0, 243, 255, 0.4) !important;
+    border-radius: 6px !important;
+    color: #F8FAFC !important;
+    font-weight: 700 !important;
     font-size: 0.85rem !important;
     text-transform: uppercase !important;
-    letter-spacing: 1px !important;
-    transition: all 0.2s ease !important;
+    letter-spacing: 1.2px !important;
+    transition: all 0.25s ease !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 .stButton button:hover {
-    background: #EC1D24 !important;
-    color: #FFFFFF !important;
-    box-shadow: 0 0 15px rgba(236, 29, 36, 0.5) !important;
+    background: linear-gradient(135deg, rgba(0, 243, 255, 0.2) 0%, rgba(0, 255, 102, 0.15) 100%) !important;
+    border-color: #00F3FF !important;
+    color: #00F3FF !important;
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.4) !important;
 }
 
 /* --- INPUT FIELDS --- */
 [data-testid="stTextInput"] input, [data-testid="stTextArea"] textarea {
-    background: #050505 !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 2px !important;
+    background: rgba(5, 9, 18, 0.9) !important;
+    border: 1px solid rgba(0, 243, 255, 0.2) !important;
+    border-radius: 6px !important;
     color: #FFFFFF !important;
     font-size: 0.95rem !important;
     padding: 12px 16px !important;
-    transition: border-color 0.2s ease !important;
+    transition: all 0.25s ease !important;
 }
 [data-testid="stTextInput"] input:focus, [data-testid="stTextArea"] textarea:focus {
-    border-color: #EC1D24 !important;
-    box-shadow: 0 0 0 2px rgba(236, 29, 36, 0.3) !important;
+    border-color: #00F3FF !important;
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.25) !important;
 }
 
-/* --- HEADINGS (Classic Marvel Title Style) --- */
+/* --- FUTURISTIC HEADINGS --- */
 .clean-title {
-    margin: 0 auto; font-weight: 900; font-size: 2.6rem !important; text-align: center;
-    color: #FFFFFF;
-    background-color: #EC1D24;
+    margin: 0 auto; font-weight: 900; font-size: 2.8rem !important; text-align: center;
+    background: linear-gradient(135deg, #FFFFFF 20%, #00F3FF 70%, #00FF66 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     display: inline-block;
     padding: 4px 16px;
     letter-spacing: -1px;
     text-transform: uppercase;
+    filter: drop-shadow(0 0 20px rgba(0, 243, 255, 0.3));
 }
 
 /* --- DATAFRAMES --- */
 [data-testid="stDataFrame"] {
-    background: rgba(26, 28, 32, 0.9) !important;
-    border-radius: 2px !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(13, 20, 35, 0.85) !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(0, 243, 255, 0.2) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
 }
 </style>
 """, unsafe_allow_html=True)
+
+# --- SESSION STATE FOR CINEMATIC INTRO ---
+if 'intro_played' not in st.session_state:
+    st.session_state.intro_played = False
+
+if not st.session_state.intro_played:
+    st.markdown("""
+    <div class="cinematic-splash" id="splash-screen">
+        <div>
+            <div style="font-size: 3.5rem; margin-bottom: 10px;">🧬</div>
+            <h1 class="holo-text">Welcome to NA Pharma Care AI</h1>
+            <p class="holo-subtext">Initializing Holographic Medical Matrix...</p>
+            <div style="margin-top: 30px;">
+                <div style="width: 200px; height: 3px; background: rgba(255,255,255,0.1); margin: 0 auto; border-radius: 3px; overflow: hidden;">
+                    <div style="width: 100%; height: 100%; background: linear-gradient(90deg, #00F3FF, #00FF66); animation: loadBar 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style>
+    @keyframes loadBar {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    time.sleep(2.8)
+    st.session_state.intro_played = True
+    st.rerun()
 
 # --- 3. HIGH-SPEED DATA LOADER ---
 EXCEL_FILE = "inventory.xlsx"
@@ -190,12 +268,12 @@ def perform_smart_inventory_search(df, query):
 st.markdown("""
 <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 8px;">
     <div class="live-badge">
-        <div class="pulse-dot"></div> S.H.I.E.L.D. Secure Node • Live
+        <div class="pulse-dot"></div> S.H.I.E.L.D. Holographic Node • Live
     </div>
 </div>
 <div style="text-align: center; padding: 0 0 24px 0;">
-    <h1 class="clean-title">NA Pharma Care</h1>
-    <p style="color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; margin-top: 6px;">Clinical Intelligence Matrix & Inventory Engine</p>
+    <h1 class="clean-title">NA Pharma Care AI</h1>
+    <p style="color: #94A3B8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2.5px; margin-top: 6px;">Futuristic Clinical Intelligence Matrix & Inventory Engine</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -209,7 +287,7 @@ with tab1:
     else:
         client = OpenAI(base_url="https://" + "api.groq.com/openai/v1", api_key=api_key)
         
-        st.markdown("<p style='color: #94a3b8; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;'>Quick Filters:</p>", unsafe_allow_html=True)
+        st.markdown("<p style='color: #94A3B8; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;'>Quick Filters:</p>", unsafe_allow_html=True)
         c1, c2, c3, c4, c5, c6 = st.columns([1,1,1,1,1,1.2])
         chip_query = None
         if c1.button("Pain"): chip_query = "pain"
@@ -224,7 +302,29 @@ with tab1:
 
         if active_query:
             total_meds_count = len(df_master) if df_master is not None else 0
+            
+            # --- FUTURISTIC ANIMATED AI LOADING STATES ---
+            status_container = st.empty()
+            with status_container.container():
+                st.markdown("""
+                <div class="hud-card" style="text-align: center; padding: 25px; margin-bottom: 15px;">
+                    <div style="color: #00F3FF; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Accessing pharmacy database...</div>
+                    <div style="color: #94A3B8; font-size: 0.8rem;">Querying encrypted nodes & molecular structures...</div>
+                </div>
+                """, unsafe_allow_html=True)
+            time.sleep(0.3)
+            
             df_matches, context_data = perform_smart_inventory_search(df_master, active_query)
+            
+            with status_container.container():
+                st.markdown("""
+                <div class="hud-card" style="text-align: center; padding: 25px; margin-bottom: 15px;">
+                    <div style="color: #00FF66; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Analyzing medicine information...</div>
+                    <div style="color: #94A3B8; font-size: 0.8rem;">Synthesizing clinical indicators & stock availability...</div>
+                </div>
+                """, unsafe_allow_html=True)
+            time.sleep(0.3)
+            status_container.empty()
 
             col_left, col_right = st.columns([1.2, 1])
 
@@ -238,15 +338,15 @@ with tab1:
 
             with col_right:
                 st.markdown("### Clinical Synthesis")
-                with st.spinner("Analyzing matrix records..."):
+                with st.spinner("Preparing response..."):
                     try:
                         system_instruction = f"""
-                        You are the internal clinical assistant for NA Pharma Care.
+                        You are the internal futuristic clinical assistant for NA Pharma Care AI.
                         TOTAL INVENTORY: {total_meds_count} medications registered.
                         
                         RULES:
                         1. If medications appear in matches, they ARE IN STOCK.
-                        2. Present each item clearly with clean line breaks.
+                        2. Present each item clearly with clean line breaks inside futuristic medical cards.
                         
                         --- MATCHED DATA ---
                         {context_data}
@@ -262,7 +362,7 @@ with tab1:
                         )
                         
                         st.markdown(f"""
-                        <div class="hud-card" style="margin-top: 10px; line-height: 1.6;">
+                        <div class="hud-card" style="margin-top: 10px; line-height: 1.6; border-left: 3px solid #00F3FF !important;">
                             {response.choices[0].message.content}
                         </div>
                         """, unsafe_allow_html=True)
@@ -272,8 +372,8 @@ with tab1:
         else:
             st.markdown("""
             <div class="hud-card" style="text-align: center; padding: 45px 20px; margin-top: 15px;">
-                <h3 style="color: #f8fafc; margin-bottom: 8px; font-weight: 700; font-size: 1.2rem;">System Ready</h3>
-                <p style="color: #94a3b8; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">Enter a search query above or select a quick filter to query the live inventory matrix.</p>
+                <h3 style="color: #F8FAFC; margin-bottom: 8px; font-weight: 700; font-size: 1.2rem;">Holographic Matrix Online</h3>
+                <p style="color: #94A3B8; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">Enter a search query above or select a quick filter to query the live pharmacy inventory matrix.</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -293,8 +393,8 @@ with tab2:
     with sub_tab1:
         st.markdown("""
         <div class="hud-card" style="margin-bottom: 15px;">
-            <h4 style="color: #f8fafc; margin-top: 0; font-size: 1rem;">Handwritten Document OCR</h4>
-            <p style="color: #94a3b8; font-size: 0.85rem;">Upload an image of a handwritten list or prescription to automatically extract and review items.</p>
+            <h4 style="color: #F8FAFC; margin-top: 0; font-size: 1rem;">Handwritten Document OCR</h4>
+            <p style="color: #94A3B8; font-size: 0.85rem;">Upload an image of a handwritten list or prescription to automatically extract and review items.</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -369,8 +469,8 @@ with tab2:
     with sub_tab2:
         st.markdown("""
         <div class="hud-card" style="margin-bottom: 15px;">
-            <h4 style="color: #f8fafc; margin-top: 0; font-size: 1rem;">Text Log Parser</h4>
-            <p style="color: #94a3b8; font-size: 0.85rem;">Paste supplier lists or chat messages to parse items into structured format.</p>
+            <h4 style="color: #F8FAFC; margin-top: 0; font-size: 1rem;">Text Log Parser</h4>
+            <p style="color: #94A3B8; font-size: 0.85rem;">Paste supplier lists or chat messages to parse items into structured format.</p>
         </div>
         """, unsafe_allow_html=True)
         
