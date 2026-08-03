@@ -56,7 +56,7 @@ footer {visibility: hidden !important; display: none !important;}
     background: rgba(26, 28, 32, 0.85) !important;
     backdrop-filter: blur(12px) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 2px !important; /* Sharp comic panel edges */
+    border-radius: 2px !important;
     padding: 20px !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
     transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
@@ -103,7 +103,7 @@ footer {visibility: hidden !important; display: none !important;}
 .clean-title {
     margin: 0 auto; font-weight: 900; font-size: 2.6rem !important; text-align: center;
     color: #FFFFFF;
-    background-color: #EC1D24; /* Official Marvel Red */
+    background-color: #EC1D24;
     display: inline-block;
     padding: 4px 16px;
     letter-spacing: -1px;
@@ -207,131 +207,4 @@ with tab1:
     if not api_key:
         st.error("⚠️ GROQ_API_KEY missing in Streamlit secrets.")
     else:
-        client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
-        
-        st.markdown("<p style='color: #94a3b8; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;'>Quick Filters:</p>", unsafe_allow_html=True)
-        c1, c2, c3, c4, c5, c6 = st.columns([1,1,1,1,1,1.2])
-        chip_query = None
-        if c1.button("Pain"): chip_query = "pain"
-        if c2.button("Fever"): chip_query = "fever"
-        if c3.button("Cough"): chip_query = "cough"
-        if c4.button("Antibiotic"): chip_query = "antibiotic"
-        if c5.button("Stomach"): chip_query = "stomach"
-        if c6.button("Clear Search"): chip_query = ""
-
-        search_input = st.text_input("Search inventory by brand, generic salt, or symptom...", value=chip_query if chip_query is not None else "")
-        active_query = search_input.strip()
-
-        if active_query:
-            total_meds_count = len(df_master) if df_master is not None else 0
-            df_matches, context_data = perform_smart_inventory_search(df_master, active_query)
-
-            col_left, col_right = st.columns([1.2, 1])
-
-            with col_left:
-                st.markdown("### Inventory Results")
-                if not df_matches.empty:
-                    st.success(f"Matched {len(df_matches)} active records.")
-                    st.dataframe(df_matches, use_container_width=True, height=380)
-                else:
-                    st.warning(f"No direct matches found for '{active_query}'.")
-
-            with col_right:
-                st.markdown("### Clinical Synthesis")
-                with st.spinner("Analyzing matrix records..."):
-                    try:
-                        system_instruction = f"""
-                        You are the internal clinical assistant for NA Pharma Care.
-                        TOTAL INVENTORY: {total_meds_count} medications registered.
-                        
-                        RULES:
-                        1. If medications appear in matches, they ARE IN STOCK.
-                        2. Present each item clearly with clean line breaks.
-                        
-                        --- MATCHED DATA ---
-                        {context_data}
-                        """
-                        
-                        response = client.chat.completions.create(
-                            model="llama-3.1-8b-instant",
-                            messages=[
-                                {"role": "system", "content": system_instruction},
-                                {"role": "user", "content": f"Provide availability and usage guidance for: {active_query}"}
-                            ],
-                            stream=False
-                        )
-                        
-                        st.markdown(f"""
-                        <div class="hud-card" style="margin-top: 10px; line-height: 1.6;">
-                            {response.choices[0].message.content}
-                        </div>
-                        """, unsafe_allow_html=True)
-                        
-                    except Exception as e:
-                        st.error(f"Neural Error: {e}")
-        else:
-            st.markdown("""
-            <div class="hud-card" style="text-align: center; padding: 45px 20px; margin-top: 15px;">
-                <h3 style="color: #f8fafc; margin-bottom: 8px; font-weight: 700; font-size: 1.2rem;">System Ready</h3>
-                <p style="color: #94a3b8; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">Enter a search query above or select a quick filter to query the live inventory matrix.</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-# --- TAB 2: ADVANCED INGESTION HUB ---
-with tab2:
-    st.markdown("### Inventory Ingestion Hub")
-    
-    sub_tab1, sub_tab2, sub_tab3, sub_tab4, sub_tab5 = st.tabs([
-        "Handwritten Scanner", 
-        "Text / WhatsApp Parser", 
-        "Bulk Importer", 
-        "Live Grid Editor", 
-        "Single Item Form"
-    ])
-    
-    # --- SUB-TAB 1: HANDWRITTEN PAPER SCANNER ---
-    with sub_tab1:
-        st.markdown("""
-        <div class="hud-card" style="margin-bottom: 15px;">
-            <h4 style="color: #f8fafc; margin-top: 0; font-size: 1rem;">Handwritten Document OCR</h4>
-            <p style="color: #94a3b8; font-size: 0.85rem;">Upload an image of a handwritten list or prescription to automatically extract and review items.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        uploaded_handwriting_image = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
-        
-        if uploaded_handwriting_image is not None:
-            st.image(uploaded_handwriting_image, caption="Source Document", use_container_width=True)
-            
-            if st.button("Extract & Process Document"):
-                if api_key:
-                    with st.spinner("Decoding document..."):
-                        try:
-                            client_vision = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
-                            image_bytes = uploaded_handwriting_image.getvalue()
-                            base64_image = base64.b64encode(image_bytes).decode('utf-8')
-                            
-                            vision_response = client_vision.chat.completions.create(
-                                model="llama-3.2-11b-vision-preview",
-                                messages=[
-                                    {
-                                            "role": "user",
-                                            "content": [
-                                                {
-                                                    "type": "text",
-                                                    "text": "Extract medications into a clean CSV format with exact headers: Brand Name, Active Salt / Generic Composition, Therapeutic Category, Primary Uses & Indications"
-                                                },
-                                                {
-                                                    "type": "image_url",
-                                                    "image_url": {
-                                                        "url": f"data:image/jpeg;base64,{base64_image}"
-                                                    }
-                                                }
-                                            ]
-                                    }
-                                ],
-                                stream=False
-                            )
-                            
-                            decoded_csv = vision_response.choices[0].message.content
-                            cleaned_csv_text = decoded_csv.replace("```csv", "").replace("
+        client = OpenAI(base_url="[https://api.groq.com/](https://api.groq.com/)
