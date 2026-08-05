@@ -34,11 +34,24 @@ footer {visibility: hidden !important; display: none !important;}
     font-family: 'Inter', -apple-system, sans-serif !important;
 }
 
-/* --- CINEMATIC INTRO OVERLAY --- */
+/* --- CINEMATIC INTRO OVERLAY (NON-BLOCKING) ---
+   Uses a CSS-only timed fade instead of a server-side time.sleep().
+   "visibility" only changes at the final keyframe, so the overlay still
+   blocks clicks while visible and stops blocking the instant it's gone -
+   no JavaScript required, and the app underneath starts rendering immediately. */
 @keyframes matrixZoom {
     0% { transform: scale(0.6); opacity: 0; filter: blur(10px); }
     50% { opacity: 1; filter: blur(0px); }
     100% { transform: scale(1); opacity: 1; filter: blur(0px); }
+}
+@keyframes splashFade {
+    0% { opacity: 1; }
+    78% { opacity: 1; }
+    100% { opacity: 0; visibility: hidden; }
+}
+@keyframes loadBar {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
 }
 .cinematic-splash {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -46,6 +59,7 @@ footer {visibility: hidden !important; display: none !important;}
     z-index: 999999; display: flex; flex-direction: column;
     justify-content: center; align-items: center; text-align: center;
     overflow: hidden; padding: 20px;
+    animation: splashFade 1.6s ease-in-out forwards;
 }
 .cinematic-splash::after {
     content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
@@ -89,6 +103,10 @@ footer {visibility: hidden !important; display: none !important;}
 }
 
 /* --- GLASSMORPHISM CARDS --- */
+@keyframes cardEnter {
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
 .hud-card {
     background: rgba(13, 20, 35, 0.75) !important;
     backdrop-filter: blur(16px) !important;
@@ -98,6 +116,7 @@ footer {visibility: hidden !important; display: none !important;}
     padding: 24px !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    animation: cardEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .hud-card:hover {
     border-color: rgba(0, 243, 255, 0.4) !important;
@@ -123,6 +142,9 @@ footer {visibility: hidden !important; display: none !important;}
     border-color: #00F3FF !important;
     color: #00F3FF !important;
     box-shadow: 0 0 20px rgba(0, 243, 255, 0.4) !important;
+}
+.stButton button:active {
+    transform: scale(0.97) !important;
 }
 
 /* --- INPUT FIELDS --- */
@@ -155,15 +177,18 @@ footer {visibility: hidden !important; display: none !important;}
     border-radius: 8px !important;
     border: 1px solid rgba(0, 243, 255, 0.2) !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    animation: cardEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # --- SESSION STATE FOR CINEMATIC INTRO ---
+# Rendered once per session. No time.sleep() and no st.rerun() here anymore -
+# the CSS animation above (splashFade) handles the timed fade-out on its own,
+# so the rest of the app starts rendering immediately instead of waiting on
+# the server thread.
 if 'intro_played' not in st.session_state:
-    st.session_state.intro_played = False
-
-if not st.session_state.intro_played:
+    st.session_state.intro_played = True
     st.markdown("""
     <div class="cinematic-splash" id="splash-screen">
         <div>
@@ -177,22 +202,13 @@ if not st.session_state.intro_played:
             </div>
         </div>
     </div>
-    <style>
-    @keyframes loadBar {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(100%); }
-    }
-    </style>
     """, unsafe_allow_html=True)
-    
-    import time
-    time.sleep(1.5)  # Faster, smoother startup transition
-    st.session_state.intro_played = True
-    st.rerun()
 
 # --- 3. HIGH-SPEED DATA LOADER ---
 EXCEL_FILE = "inventory.xlsx"
+SEARCH_BLOB_COL = "_search_blob"
 api_key = st.secrets.get("GROQ_API_KEY")
+
 
 @st.cache_data(show_spinner=False)
 def load_inventory_data():
@@ -201,39 +217,63 @@ def load_inventory_data():
     try:
         df_master = pd.read_excel(EXCEL_FILE, sheet_name='Full Master Medicine List', header=3)
         df_master.dropna(how='all', inplace=True)
+
+        # Pre-build one lowercase "search blob" column combining every
+        # searchable field. This is the expensive part of a text search
+        # (casting every column to string), so we do it once here at load
+        # time instead of redoing it inside every single search call.
+        exclude_cols = ['Common Side Effects', 'Warnings & Contraindications', 'S.No', 'S. No']
+        target_cols = [c for c in df_master.columns if c not in exclude_cols]
+        df_master[SEARCH_BLOB_COL] = (
+            df_master[target_cols].astype(str).agg(' | '.join, axis=1).str.lower()
+        )
         return df_master
     except Exception:
         return None
 
+
 df_master = load_inventory_data()
+
 
 # --- 4. OPTIMIZED SMART SEARCH ALGORITHM ---
 @st.cache_data(show_spinner=False)
-def perform_smart_inventory_search(query_clean, df_hash_placeholder=None):
-    # Note: df_master is accessed globally, but caching speeds up repeated queries
+def perform_smart_inventory_search(query_clean):
     global df_master
     if df_master is None or df_master.empty:
         return pd.DataFrame(), "Inventory is empty or uninitialized."
-    
-    brand_col = 'Brand Name' if 'Brand Name' in df_master.columns else df_master.columns[0]
-    salt_col = 'Active Salt / Generic Composition' if 'Active Salt / Generic Composition' in df_master.columns else None
-    category_col = 'Therapeutic Category' if 'Therapeutic Category' in df_master.columns else None
-    uses_col = 'Primary Uses & Indications' in df_master.columns and 'Primary Uses & Indications' or None
 
-    exclude_cols = ['Common Side Effects', 'Warnings & Contraindications', 'S.No', 'S. No']
-    target_cols = [c for c in df_master.columns if c not in exclude_cols]
-
-    # Vectorized fast search using string containment across target columns
-    mask = df_master[target_cols].astype(str).apply(lambda col: col.str.contains(query_clean, case=False, na=False)).any(axis=1)
+    # Single-column substring search against the precomputed blob -
+    # equivalent in result to searching every column, but far cheaper
+    # since no per-query string casting is needed.
+    mask = df_master[SEARCH_BLOB_COL].str.contains(query_clean, case=False, na=False)
     matches = df_master[mask]
 
     display_cols = [c for c in ['Brand Name', 'Active Salt / Generic Composition', 'Therapeutic Category', 'Primary Uses & Indications'] if c in df_master.columns]
-    
+
     if not matches.empty:
         result_df = matches[display_cols].head(15)
         return result_df, result_df.to_string(index=False)
     else:
         return pd.DataFrame(), "No exact or matching medications found in current inventory records."
+
+
+# --- CACHED AI CLIENT ---
+# Building an OpenAI/Groq client is cheap, but there's no reason to build a
+# fresh one on every search, OCR call, and parse call within the same
+# session - reuse a single cached instance instead.
+@st.cache_resource(show_spinner=False)
+def get_groq_client():
+    return OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
+
+
+def commit_dataframe(updated_df: pd.DataFrame):
+    """Write the master dataframe back to the Excel file, dropping the
+    internal search-blob helper column first so it never leaks into the
+    saved spreadsheet."""
+    to_save = updated_df.drop(columns=[SEARCH_BLOB_COL], errors='ignore')
+    with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
+        to_save.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
+
 
 # --- 5. HEADER WITH SYSTEM STATUS ---
 st.markdown("""
@@ -256,8 +296,8 @@ with tab1:
     if not api_key:
         st.error("⚠️ GROQ_API_KEY missing in Streamlit secrets.")
     else:
-        client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
-        
+        client = get_groq_client()
+
         st.markdown("<p style='color: #94A3B8; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;'>Quick Filters:</p>", unsafe_allow_html=True)
         c1, c2, c3, c4, c5, c6 = st.columns([1,1,1,1,1,1.2])
         chip_query = None
@@ -273,7 +313,7 @@ with tab1:
 
         if active_query:
             total_meds_count = len(df_master) if df_master is not None else 0
-            
+
             # --- HIGH-PERFORMANCE INSTANT EXECUTION ---
             df_matches, context_data = perform_smart_inventory_search(active_query)
 
@@ -302,7 +342,7 @@ with tab1:
                         --- MATCHED DATA ---
                         {context_data}
                         """
-                        
+
                         response = client.chat.completions.create(
                             model="llama-3.1-8b-instant",
                             messages=[
@@ -311,13 +351,13 @@ with tab1:
                             ],
                             stream=False
                         )
-                        
+
                         st.markdown(f"""
                         <div class="hud-card" style="margin-top: 10px; line-height: 1.6; border-left: 3px solid #00F3FF !important;">
                             {response.choices[0].message.content}
                         </div>
                         """, unsafe_allow_html=True)
-                        
+
                     except Exception as e:
                         st.error(f"Neural Error: {e}")
         else:
@@ -331,7 +371,7 @@ with tab1:
 # --- TAB 2: ADVANCED INGESTION HUB ---
 with tab2:
     st.markdown("### Inventory Ingestion Hub")
-    
+
     sub_tab1, sub_tab2, sub_tab3, sub_tab4, sub_tab5 = st.tabs([
         "Handwritten Scanner", 
         "Text / WhatsApp Parser", 
@@ -339,7 +379,7 @@ with tab2:
         "Live Grid Editor", 
         "Single Item Form"
     ])
-    
+
     # --- SUB-TAB 1: HANDWRITTEN PAPER SCANNER ---
     with sub_tab1:
         st.markdown("""
@@ -348,20 +388,20 @@ with tab2:
             <p style="color: #94A3B8; font-size: 0.85rem;">Upload an image of a handwritten list or prescription to automatically extract and review items.</p>
         </div>
         """, unsafe_allow_html=True)
-        
+
         uploaded_handwriting_image = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
-        
+
         if uploaded_handwriting_image is not None:
             st.image(uploaded_handwriting_image, caption="Source Document", use_container_width=True)
-            
+
             if st.button("Extract & Process Document"):
                 if api_key:
                     with st.spinner("Decoding document..."):
                         try:
-                            client_vision = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
+                            client_vision = get_groq_client()
                             image_bytes = uploaded_handwriting_image.getvalue()
                             base64_image = base64.b64encode(image_bytes).decode('utf-8')
-                            
+
                             vision_response = client_vision.chat.completions.create(
                                 model="llama-3.2-11b-vision-preview",
                                 messages=[
@@ -383,11 +423,11 @@ with tab2:
                                 ],
                                 stream=False
                             )
-                            
+
                             decoded_csv = vision_response.choices[0].message.content
                             cleaned_csv_text = decoded_csv.replace("```csv", "").replace("```", "").strip()
                             df_temp_preview = pd.read_csv(io.StringIO(cleaned_csv_text))
-                            
+
                             st.session_state['ocr_preview_df'] = df_temp_preview
                             st.success("Extraction complete. Review entries below.")
                         except Exception as e:
@@ -396,18 +436,17 @@ with tab2:
         if 'ocr_preview_df' in st.session_state:
             st.markdown("#### Review Extracted Rows")
             final_reviewed_df = st.data_editor(st.session_state['ocr_preview_df'], num_rows="dynamic", use_container_width=True)
-            
+
             if st.button("Commit Verified Rows"):
                 if df_master is not None:
                     valid_rows = final_reviewed_df.dropna(how='all')
                     if 'Brand Name' in valid_rows.columns:
                         valid_rows['Brand Name'] = valid_rows['Brand Name'].astype(str).str.strip().str.title()
-                    
+
                     combined_df = pd.concat([df_master, valid_rows], ignore_index=True).drop_duplicates(subset=['Brand Name'] if 'Brand Name' in valid_rows.columns else None)
-                    
+
                     try:
-                        with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
-                            combined_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
+                        commit_dataframe(combined_df)
                         st.success(f"Successfully committed {len(valid_rows)} records.")
                         st.cache_data.clear()
                         del st.session_state['ocr_preview_df']
@@ -424,7 +463,7 @@ with tab2:
             <p style="color: #94A3B8; font-size: 0.85rem;">Paste supplier lists or chat messages to parse items into structured format.</p>
         </div>
         """, unsafe_allow_html=True)
-        
+
         raw_supplier_text = st.text_area("Paste raw text here...", height=120)
         if st.button("Parse Text"):
             if raw_supplier_text.strip() and api_key:
@@ -437,7 +476,7 @@ with tab2:
                         Text:
                         {raw_supplier_text}
                         """
-                        parse_response = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key).chat.completions.create(
+                        parse_response = get_groq_client().chat.completions.create(
                             model="llama-3.1-8b-instant",
                             messages=[{"role": "user", "content": parsing_prompt}],
                             stream=False
@@ -457,8 +496,7 @@ with tab2:
                 if st.button("Merge Spreadsheet"):
                     if df_master is not None:
                         combined_df = pd.concat([df_master, df_incoming], ignore_index=True).drop_duplicates()
-                        with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
-                            combined_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
+                        commit_dataframe(combined_df)
                         st.success(f"Merged successfully. Total records: {len(combined_df)}")
                         st.cache_data.clear()
             except PermissionError:
@@ -469,15 +507,14 @@ with tab2:
     # --- SUB-TAB 4: LIVE BROWSER GRID ---
     with sub_tab4:
         if df_master is not None:
-            empty_template = pd.DataFrame(columns=df_master.columns)
+            empty_template = pd.DataFrame(columns=[c for c in df_master.columns if c != SEARCH_BLOB_COL])
             edited_grid_df = st.data_editor(empty_template, num_rows="dynamic", use_container_width=True, height=250)
             if st.button("Commit Grid Rows"):
                 valid_new_rows = edited_grid_df.dropna(how='all')
                 if not valid_new_rows.empty:
                     updated_df = pd.concat([df_master, valid_new_rows], ignore_index=True).drop_duplicates()
                     try:
-                        with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
-                            updated_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
+                        commit_dataframe(updated_df)
                         st.success(f"Committed {len(valid_new_rows)} rows.")
                         st.cache_data.clear()
                     except PermissionError:
@@ -495,17 +532,16 @@ with tab2:
                 new_uses = st.text_input("Primary Uses")
                 if st.form_submit_button("Save Item"):
                     if new_brand:
-                        cols = list(df_master.columns)
+                        cols = [c for c in df_master.columns if c != SEARCH_BLOB_COL]
                         new_row = {col: "" for col in cols}
                         if len(cols) > 0: new_row[cols[0]] = new_brand.strip().title()
                         if len(cols) > 1: new_row[cols[1]] = new_generic
                         if len(cols) > 2: new_row[cols[2]] = new_category
                         if len(cols) > 3: new_row[cols[3]] = new_uses
-                        
+
                         updated_df = pd.concat([df_master, pd.DataFrame([new_row])], ignore_index=True)
                         try:
-                            with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='w') as writer:
-                                updated_df.to_excel(writer, sheet_name='Full Master Medicine List', startrow=3, index=False)
+                            commit_dataframe(updated_df)
                             st.success(f"Committed '{new_brand}'.")
                             st.cache_data.clear()
                         except PermissionError:
