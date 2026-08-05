@@ -123,6 +123,21 @@ footer {visibility: hidden !important; display: none !important;}
     box-shadow: 0 12px 40px rgba(0, 243, 255, 0.12), inset 0 1px 2px rgba(0, 243, 255, 0.2) !important;
     transform: translateY(-2px);
 }
+.hud-card {
+    position: relative !important;
+    overflow: hidden !important;
+}
+.hud-card::before {
+    content: "";
+    position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(0, 243, 255, 0.12), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.6s ease;
+    pointer-events: none;
+}
+.hud-card:hover::before {
+    left: 130%;
+}
 
 /* --- ACTION BUTTONS --- */
 .stButton button {
@@ -146,6 +161,21 @@ footer {visibility: hidden !important; display: none !important;}
 .stButton button:active {
     transform: scale(0.97) !important;
 }
+.stButton button {
+    position: relative !important;
+    overflow: hidden !important;
+}
+.stButton button::after {
+    content: "";
+    position: absolute; top: 0; left: -75%; width: 50%; height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(0, 243, 255, 0.25), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.5s ease;
+    pointer-events: none;
+}
+.stButton button:hover::after {
+    left: 130%;
+}
 
 /* --- INPUT FIELDS --- */
 [data-testid="stTextInput"] input, [data-testid="stTextArea"] textarea {
@@ -166,9 +196,93 @@ footer {visibility: hidden !important; display: none !important;}
 .clean-title {
     margin: 0 auto; font-weight: 900; font-size: 2.8rem !important; text-align: center;
     background: linear-gradient(135deg, #FFFFFF 20%, #00F3FF 70%, #00FF66 100%);
+    background-size: 200% 200%;
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     display: inline-block; padding: 4px 16px; letter-spacing: -1px;
     text-transform: uppercase; filter: drop-shadow(0 0 20px rgba(0, 243, 255, 0.3));
+    animation: titleShift 6s ease-in-out infinite;
+}
+@keyframes titleShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* --- LIVE ANIMATED BACKDROP ---
+   Pure CSS, transform/opacity driven (GPU-compositable), no JS particle
+   engine, no extra network or Python work - this is decorative only and
+   does not touch app logic or load time. */
+.bg-fx {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+}
+.bg-orb {
+    position: absolute; border-radius: 50%; filter: blur(70px);
+    will-change: transform;
+}
+.orb1 {
+    width: 420px; height: 420px; top: -10%; left: -8%;
+    background: radial-gradient(circle, rgba(0,243,255,0.22) 0%, rgba(0,243,255,0) 70%);
+    animation: orbDrift1 22s ease-in-out infinite;
+}
+.orb2 {
+    width: 380px; height: 380px; bottom: -12%; right: -6%;
+    background: radial-gradient(circle, rgba(0,255,102,0.18) 0%, rgba(0,255,102,0) 70%);
+    animation: orbDrift2 26s ease-in-out infinite;
+}
+.orb3 {
+    width: 300px; height: 300px; top: 42%; left: 58%;
+    background: radial-gradient(circle, rgba(140,100,255,0.16) 0%, rgba(140,100,255,0) 70%);
+    animation: orbDrift3 30s ease-in-out infinite;
+}
+@keyframes orbDrift1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(60px, 40px) scale(1.15); }
+}
+@keyframes orbDrift2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-50px, -30px) scale(1.1); }
+}
+@keyframes orbDrift3 {
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.75; }
+    50% { transform: translate(-40px, 50px) scale(0.9); opacity: 1; }
+}
+
+.bg-grid {
+    position: absolute; inset: -60px;
+    background-image:
+        linear-gradient(rgba(0,243,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,243,255,0.05) 1px, transparent 1px);
+    background-size: 48px 48px;
+    animation: gridDrift 40s linear infinite;
+    -webkit-mask-image: radial-gradient(circle at 50% 30%, rgba(0,0,0,0.9) 0%, transparent 72%);
+    mask-image: radial-gradient(circle at 50% 30%, rgba(0,0,0,0.9) 0%, transparent 72%);
+}
+@keyframes gridDrift {
+    0% { background-position: 0 0, 0 0; }
+    100% { background-position: 480px 240px, 480px 240px; }
+}
+
+.bg-scanline {
+    position: absolute; left: 0; width: 100%; height: 140px;
+    background: linear-gradient(180deg, rgba(0,243,255,0) 0%, rgba(0,243,255,0.06) 50%, rgba(0,243,255,0) 100%);
+    animation: scanMove 9s ease-in-out infinite;
+    will-change: transform;
+}
+@keyframes scanMove {
+    0% { transform: translateY(-20vh); }
+    100% { transform: translateY(120vh); }
+}
+
+.bg-particles .p {
+    position: absolute; width: 3px; height: 3px; border-radius: 50%;
+    background: #00F3FF; box-shadow: 0 0 6px 1px rgba(0,243,255,0.8);
+    opacity: 0; animation: particleFloat 8s ease-in-out infinite;
+    will-change: transform, opacity;
+}
+@keyframes particleFloat {
+    0% { transform: translateY(0); opacity: 0; }
+    15% { opacity: 0.9; }
+    85% { opacity: 0.5; }
+    100% { transform: translateY(-90px); opacity: 0; }
 }
 
 /* --- DATAFRAMES --- */
@@ -180,6 +294,36 @@ footer {visibility: hidden !important; display: none !important;}
     animation: cardEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 </style>
+""", unsafe_allow_html=True)
+
+# --- LIVE ANIMATED BACKDROP ---
+# Fixed, hand-picked particle positions/delays (not random) so the backdrop
+# doesn't jump or reshuffle every time Streamlit reruns the script on a
+# button click or text input - it just keeps animating smoothly in place.
+st.markdown("""
+<div class="bg-fx">
+    <div class="bg-orb orb1"></div>
+    <div class="bg-orb orb2"></div>
+    <div class="bg-orb orb3"></div>
+    <div class="bg-grid"></div>
+    <div class="bg-scanline"></div>
+    <div class="bg-particles">
+        <span class="p" style="left:6%; top:82%; animation-delay:0.0s; animation-duration:7.5s;"></span>
+        <span class="p" style="left:14%; top:35%; animation-delay:1.2s; animation-duration:8.5s;"></span>
+        <span class="p" style="left:22%; top:66%; animation-delay:2.4s; animation-duration:6.8s;"></span>
+        <span class="p" style="left:31%; top:18%; animation-delay:0.6s; animation-duration:9.2s;"></span>
+        <span class="p" style="left:39%; top:74%; animation-delay:3.1s; animation-duration:7.0s;"></span>
+        <span class="p" style="left:47%; top:44%; animation-delay:1.8s; animation-duration:8.0s;"></span>
+        <span class="p" style="left:55%; top:88%; animation-delay:0.3s; animation-duration:7.8s;"></span>
+        <span class="p" style="left:63%; top:28%; animation-delay:2.7s; animation-duration:9.5s;"></span>
+        <span class="p" style="left:71%; top:60%; animation-delay:1.0s; animation-duration:6.5s;"></span>
+        <span class="p" style="left:78%; top:15%; animation-delay:3.5s; animation-duration:8.3s;"></span>
+        <span class="p" style="left:85%; top:70%; animation-delay:0.9s; animation-duration:7.2s;"></span>
+        <span class="p" style="left:91%; top:40%; animation-delay:2.1s; animation-duration:9.0s;"></span>
+        <span class="p" style="left:10%; top:52%; animation-delay:4.0s; animation-duration:8.8s;"></span>
+        <span class="p" style="left:66%; top:80%; animation-delay:1.5s; animation-duration:7.4s;"></span>
+    </div>
+</div>
 """, unsafe_allow_html=True)
 
 # --- SESSION STATE FOR CINEMATIC INTRO ---
